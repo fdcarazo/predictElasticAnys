@@ -39,11 +39,12 @@ class Predict():
         info(additional=""):
         Prints the person's name and age.
     '''
-    def __init__(self, df, model, sca_feat, sca_targ):
+    def __init__(self, df, model, sca_feat, sca_targ, ir):
         self.df=df
         self.model=model
         self.sca_feat=sca_feat
         self.sca_targ=sca_targ
+        self.irun=ir
         self.L=[var for var in df.columns if 'vgrad' in var]
         self.C_in=[var for var in df.columns if '_in' in var]
         self.C_out=[var for var in df.columns if '_out' in var]
@@ -53,9 +54,13 @@ class Predict():
         ## df_vpsc= dict() # 2BeDo. To save {key:df_name, val:df}-.
         df_vpsc, df_rec, iruned= list(), list(), list()
         for i in range(n_cases):
-            irun=np.random.randint(self.df['irun'].min(), self.df['irun'].max())
-            iruned.append(irun)
-            df_vpsc.append(self.df[self.df['irun']==irun])
+            if self.irun == 'random':
+                irun=np.random.randint(self.df['irun'].min(), self.df['irun'].max())
+                iruned.append(irun)
+                df_vpsc.append(self.df[self.df['irun']==irun])
+            else:
+                iruned.append(self.irun)
+                df_vpsc.append(self.df[self.df['irun']==self.irun])
 
         feat_lab=self.L+self.C_in
         feat_plus_targ=self.L+self.C_in+self.C_out # features+targets-.
@@ -98,24 +103,29 @@ class Predict():
         
         for i in range(len(dfin)):
             if i==0:
-                L= dfin.loc[i, self.L]
-                Cijkl_in= dfin.loc[i,self.C_in]
-                X= dfin.loc[i,feat_lab]
+                L=dfin.loc[i, self.L]
+                Cijkl_in=dfin.loc[i,self.C_in]
+                X=dfin.loc[i,feat_lab]
             else:  ##
-                L= dfin.loc[i,self.L]
-                Cijkl_in= df_iter.loc[i-1,self.C_out]
-                X= pd.concat([L,Cijkl_in])
-            X= X.to_numpy(dtype=float).reshape(1,-1)
+                L=dfin.loc[i,self.L]
+                Cijkl_in=df_iter.loc[i-1,self.C_out]
+                X=pd.concat([L,Cijkl_in])
+            X=X.to_numpy(dtype=float).reshape(1,-1)
 
-            with torch.no_grad():
-                Cijkl_out= self.model(torch.tensor(self.sca_feat.transform(X), dtype= torch.float)).detach().numpy()
-
-            ## Cijkl_out_transf= sca_targ.inverse_transform(Cijkl_out)
-            Cijkl_out_transf= self.sca_targ.inverse_transform(Cijkl_out)
-
-            reg= L.values.tolist()
+            if i==0:
+                Cijkl_out_transf=dfin.loc[i,self.C_out].to_numpy()
+            else:
+                with torch.no_grad():
+                    Cijkl_out= self.model(torch.tensor(self.sca_feat.transform(X), dtype= torch.float)).detach().numpy()
+                    ## Cijkl_out_transf= sca_targ.inverse_transform(Cijkl_out)
+                    Cijkl_out_transf= self.sca_targ.inverse_transform(Cijkl_out)
+            
+            reg=L.values.tolist()
             reg.extend(Cijkl_in.values.tolist())
-            reg.extend(Cijkl_out_transf.tolist()[0])
+            if i==0:
+                reg.extend(Cijkl_out_transf.tolist())
+            else:
+                reg.extend(Cijkl_out_transf.tolist()[0])
             
             ## add new values at the end of a DataFrame created-.
             df_iter.loc[i]= reg

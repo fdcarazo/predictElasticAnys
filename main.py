@@ -64,8 +64,8 @@ def main(config) -> int:
                )
 
     ## 4- -.
-    pred_obj=pred(df_main,mlmodel,s_f, s_t)
-    df_vpsc_main, df_rec_main, iruned= pred_obj.pred_recursive_main(2)
+    pred_obj=pred(df_main,mlmodel,s_f, s_t,cfg_obj.irun)
+    df_vpsc_main, df_rec_main, iruned= pred_obj.pred_recursive_main(1)
 
     ## 5- -.
     ppr_obj=ppr(df_vpsc_main)

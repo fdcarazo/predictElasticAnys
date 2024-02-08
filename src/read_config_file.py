@@ -45,6 +45,7 @@ class Config():
         self.save_figs=self.config['gen_options']['save_figs'] # 2save or not the figures-.
         self.dir_save_figs= self.config['gen_options']['dir_save_figs'] # 2set path save figures-.
         self.dim=self.config['gen_options']['dim']
+        self.irun=self.config['gen_options']['irun']
         
         ## 2-2- Paths-.
         ## self.currentdir=drn(rp(__file__))
@@ -67,12 +68,12 @@ class Config():
         self.sca_targ=self.config['scaler']['targ'] # used to scale/standarize a TARGETS of the DF-.
 
 if __name__=='__main__':
-    config_file_path='/Users/Fernando/scratch/elasAnys/2testModels/config_file.yaml'
+    config_file_path='/Users/Fernando/myGithub/predictElasticAnys/config_file.yaml'
     with open(config_file_path, 'r') as f: config= yaml.safe_load(f)
     cfg_obj=Config(config)
     print(cfg_obj.__dir__(), dir(cfg_obj), sep='\n'*2)
     print('{}{}'.format('\n'*3,cfg_obj.__dict__))
-    print(cfg_obj.ensemble_dl, cfg_obj.mfn, sep='\n')
+    print(cfg_obj.sca_targ, cfg_obj.mfn, sep='\n')
 else:
     print('{0} imported as Module'.format(__file__.split('/')[-1]))
 
