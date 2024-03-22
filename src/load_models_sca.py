@@ -15,14 +15,25 @@
 ## Import the required packages/libraries/modules-.
 ## 1-1- GENERAL MODULES -.
 from torch.cuda import is_available as ia
-from torch import load as tl 
+from torch import load as tl
+from torch import nn
 import pickle, sys
+
+from models.ffnn import MLP
+
+## Pytorch Ensembles(torchensemble) models-.
+from torchensemble.utils import io
+from torchensemble.fusion import FusionRegressor
+from torchensemble.voting import VotingRegressor
+from torchensemble.bagging import BaggingRegressor
+from torchensemble.gradient_boosting import GradientBoostingRegressor
+from torchensemble.snapshot_ensemble import SnapshotEnsembleRegressor
 
 ## main class-.
 ## 2BeMod: -.
 class ModelScalersStand():
     '''
-         A class to load ML's models and scaler-.
+         A class to load ML's models and scaler/s-.
         ...
         Attributes (only an example, 2BeCompleted-.)
         ----------
@@ -37,17 +48,31 @@ class ModelScalersStand():
         pass
     
     def load_model(self,root_mod_sca:str, mfn:str):
-        ''' load ML's model '''
+        '''
+        load ML's model
+        Attributes
+        ----------
+        root_mod_sca: PATH (absolute, from ROOT) to ensemble file model-.
+        mfn: name of ensemble file model-.
+        '''
         ## check if I've GPU-.
-        model_file= root_mod_sca+ mfn
-        map_location= 'cpu' if not ia() else lambda storage, loc: storage.cuda()
+        model_file=root_mod_sca+mfn
+        map_location='cpu' if not ia() else lambda storage, loc: storage.cuda()
         
         ## Load DL's model-.
         ## with open(model_file, 'rb') as fm: model= torch.load(fm, map_location=torch.device('cpu')) # @ NotEnsemble-.
         ## print(model_file)
-        with open(model_file, 'rb') as fm: model= tl(fm, map_location=map_location)
-        ## print(model)
-
+        ## print(str.split(root_mod_sca,'/')[-2])
+        ## print(str.split(str.split(root_mod_sca,'/')[-2],'-')); input(88)
+        
+        if(str.split(str.split(root_mod_sca,'/')[-2],'-')[0]!='Ensemble'):
+            with open(model_file, 'rb') as fm: model=tl(fm, map_location=map_location)
+        else: ## torchensemble model-.
+            model_name=str.split(str.split(root_mod_sca,'/')[-2],'-')[1] # GradientBoostingRegressor
+            layers_data=[(2048, nn.ReLU(),None), #
+                         (21,None,None)]
+            model=eval(model_name)(estimator=MLP(25,21,layers_data),n_estimators=10,cuda=False)
+            io.load(model,root_mod_sca,map_location)
         return model
 
     def load_scalers(self,root_mod_sca:str, sca_feat=None, sca_targ=None, sca=None):

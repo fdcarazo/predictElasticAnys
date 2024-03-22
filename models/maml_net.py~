@@ -1,0 +1,164 @@
+#!/usr/bin/python3.9
+# -*- coding: utf-8 -*-
+##
+## SCRIPT: NN (MAML -Meta Agnostic Machine Learning)) used to train the model
+##         in UM's or JeanZay's Cluster-.
+##
+## @AUTHOR: Fernando Diego Carazo (@buenaluna) -.
+## start date (Fr): Mon Mar  4 22:57:00 CET 2024-.
+## last modify (Fr): -.
+##
+## ====================================================================== INI79
+
+## ====================================================================== INI79
+## 1- include packages, modules, variables, etc.-.
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import pickle as pickle
+
+from torch.nn import functional as F
+import torchbnn as bnn
+
+## 2don't have problems between float datatype of torch and bnnNN
+## if torch.is_tensor(xx) else torc.tensor(xx,dtype=float) (float64) and float
+## of NN (float32)-.
+torch.set_default_dtype(torch.float64)
+## torch.set_default_dtype(torch.float32)
+## - ======================================================================END79
+
+
+## - ======================================================================INI79
+## Bayesian NN using torchbnn package-.
+class BayesianNet(nn.Module):
+    def __init__(self,
+                 inp:int,
+                 out:int,
+                 loss=torch.nn.MSELoss(),
+                 optimizer=optim.Adam,
+                 kl_loss=bnn.BKLLoss(),
+                 device='cpu',
+                 w_d=1.0e-2,
+                 lr=1.0e-2,
+                 kl_weight=1.0e-1
+                 ): # 1-100-1-.
+        
+        self.inp=inp; self.out=out
+        self.device=device
+        self.w_d=w_d
+        self.l_r=lr
+        self.kl_weight=kl_weight
+        
+        ## NN-topology or architecture-.
+        super(BayesianNet, self).__init__()
+        
+        self.hid1=bnn.BayesLinear(prior_mu=0, prior_sigma=0.1,
+                                  in_features=self.inp, out_features=2048
+                                  )
+        ##self.hid2=bnn.BayesLinear(prior_mu=0, prior_sigma=0.1,
+        ##                          in_features=100, out_features=50
+        ##                          )
+        self.ouput=bnn.BayesLinear(prior_mu=0, prior_sigma=0.1,
+                                  in_features=2048, out_features=self.out
+                                  )
+        self.relu=nn.ReLU()
+
+        ## NN-loss function, optimizer, loss and KL-loss-.
+        ## NOTE: optimizer and losses shoulb came after define topology or 
+        ## architecture of NN-.
+        self.optimizer=optimizer(params=self.parameters(), lr=self.l_r, weight_decay=self.w_d)
+        self.loss=loss
+        self.kl_loss=kl_loss
+        
+    def forward(self, xx):
+        z=self.relu(self.hid1(xx))
+        ## z=self.relu(self.hid2(z))
+        z=self.ouput(z)
+        return z
+## - ======================================================================END79
+
+
+
+## - ======================================================================INI79
+## 2- To train and test models-.
+class TrainPredict(BayesianNet):
+    def __init__(self,model,train_dl,val_dl,inp,out,loss,optimizer,kl_loss,
+                 device,w_d,lr,kl_weight
+                 ):
+        ''' class constructor '''
+        super().__init__(inp,out,loss,optimizer,kl_loss,device,w_d,lr,kl_weight)
+        
+        self.model=model
+        self.train_dl=train_dl
+        self.val_dl=val_dl
+        
+    def train(self,epochs=1, val=False):
+        ''' Bayesian NN trainer '''
+        loss_dir={'train_loss': [],
+                  'val_loss': []
+                  }
+        train_time=0.0
+        n_train=len(self.train_dl)
+        ## train
+        ## -> 2apply dropout/normalization (only in train) and 2Calc and Save the
+        ##    grad of params W.R.T. loss function which T.B.U. to update model 
+        ##    params (weights and biases)-.
+        self.model.train()
+
+        epochs=tqdm.tqdm(range(epochs), desc='Epochs')
+        for iepoch in epochs:
+            ##########for iepoch in range(epochs):
+            start_time=time.time()
+            ##########with tqdm.tqdm(total=n_train,position=0) as pbar_train:
+            ##########   pbar_train.set_description('Epoch -- {0} -- / '+'({1})'+ ' - train- {2}'.
+            ##########                              format(epoch+1,'epoch','\n')
+            ##########                               )
+            ##########    ## pbar_train.set_postfix(avg_loss='0.0')
+            loss_dir['train_loss'].append(self.fit_regression(self.train_dl,
+                                                              ## pbar_train,
+                                                              True
+                                                              )
+                                          )        
+            ## val loop-.
+            if val:
+                n_val=len(self.val_dl)
+                ## -> if exists (layers), don't applied dropout, batchNormalization,
+                ## and don't registers gradients among other things-.
+                self.model.eval() 
+                ## with tqdm(total=n_val, position=0) as pbar_val:
+                ## pbar_val.set_description('Epoch -- {0} -- / '+'({1})'+ ' - val-.'.
+                ##                             format(epoch+1,'epoch')
+                ##                             )
+                ## pbar_val.set_postfix(avg_loss='0.0')
+                loss_dir['val_loss'].append(self.fit_regression(self.val_dl,
+                                                                ## pbar_val,
+                                                                val
+                                                                )
+                                            )
+        train_time=time.time()- start_time # per epoch-.
+        return train_time, loss_dir
+
+    ########## def fit_regression(self,dataloader,pbar,train=True):
+    def fit_regression(self,dataloader,train=True):
+        ''' train and/or validation using batches '''
+        running_loss=0.0
+        ## for idl, data in enumerate(dataloader,0):
+        for idl, (X,Y) in enumerate(dataloader,0):
+            ## X,Y=map(lambda x: x.to('cpu'),data) # cpu or gpu-.
+            X,Y=X.to(device),Y.to(device) ## map(lambda x: x.to('cpu'),data) # cpu or gpu-.
+            ## print(X.get_device(), Y.get_device(), sep='\n'); input(11)
+            if train: self.model.optimizer.zero_grad() # re-start gradient-.
+            pred=self.model(X) # forward pass -.
+            loss=self.model.loss(pred,Y) # evaluate prediction-.
+            kl=self.model.kl_loss(self.model) # calc. loss (as KL -between distributions-)-.
+            cost=loss+self.model.kl_weight*kl # calc total loss (MSE_loss + KL_loss)-.            
+            if train:
+                ## apply loss back propropagation-.
+                cost.backward() # backpropagation-.
+                self.model.optimizer.step() # update parameters (weights and biases))-.
+            running_loss+=cost.item()
+        avg_loss=running_loss/len(X)
+            ########## pbar.set_postfix(avg_loss='{:.4f}'.format(avg_loss))
+            ## pbar.update(Y.shape[0]) # ?-.
+        return avg_loss
+## - ======================================================================END79

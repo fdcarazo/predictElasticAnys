@@ -1,0 +1,11 @@
+    ## save the model-.                                                                                                      
+    filemod= load_file.root_res+ '/'+ 'dlModelWithoutHyperOpt'+ '.pkl'
+    with open(filemod, 'wb') as fdl:
+        pickle.dump(best_model, fdl)
+        filemod= load_file.root_res+ '/'+ 'dlModelWithoutHyperOpt'+ '.pt'
+    with open(filemod, 'wb') as fdl:
+        torch.save(best_model, fdl)
+        filemod= load_file.root_res+ '/'+ 'dlModelWithoutHyperOpt_sd'+ '.pt' ## state_dict                                   
+    with open(filemod, 'wb') as fdl:
+        torch.save(best_model.state_dict(), filemod)
+

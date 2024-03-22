@@ -1,18 +1,50 @@
 gen_options:
-  save_figs: True
-  dir_save_figs: '/Users/Fernando/temp/'
+  save: True
+  dir_save: '/Users/Fernando/temp/'
   dim: '2D'  # by default the BC is applied in plane (1-2) == (x-y)-.
-  irun: 'random'
+  nirun: 1000 # number of cases VPSC/IRUNs, used in statisticalPlots (i.e. src/plot_res_statistical.py)-.
+  irun: 'random' # 'random' or int. How select the VPSC's/IRUN's cases from dataset-.
+  nnn: 10 # number of NN to be used in uncertainty determination-.
+  quart: 10 # uncertaninty interval of 95%-.
   
 dataset:
-  path: '/Users/Fernando/temp/' 
-  name: 'db3-CFMORn1-90deg-resc.csv' 
+  path: '/Users/Fernando/posDocMontpellier2022/AyV/ds/'
+##  name: 'db3-CFMORn1-90deg-resc.csv'
+##  name: 'db3-CFMORn1-45deg-resc.csv'
+##  name: 'db3-PS-resc.csv'
+##  name: 'db3-SS.csv'
+##  name: 'db3-SSalldirs.csv'
+  name: 'db3-SZModel1-str75-100.csv'
+##  name: 'db3-SZModel1-str100-130.csv'
+##  name: db3-SS_0_10.csv
+##  name: 'db3-SZModel1-str130-160.csv' 
 
 model:
-  path: '/Users/Fernando/temp/models/' 
-  name: 'dlModelWithoutHyperOpt.pt'
+##  path: '/Users/Fernando/out_from_cluster/mlp/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_123041/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_140533/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_165628/'
+##   path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_155009/'
+  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_171915/'
+##    path: '/Users/Fernando/out_from_cluster/MLP-19032024_181619/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-12032024_092116/'
+##  path: '/Users/Fernando/out_from_cluster/resDL_35_SS/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-12032024_161520/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-12032024_170406/'
+## path: '/Users/Fernando/out_from_cluster/resDL_45_SS/' # @1
+##########    path: '/Users/Fernando/out_from_cluster/MLP-12032024_183139/'
+##  name: 'dlModelWithoutHyperOpt_torch.pt'
+##  path: '/Users/Fernando/out_from_cluster/Ensemble-GradientBoostingRegressor-07032024_190335/'
+##  path: '/Users/Fernando/out_from_cluster/Ensemble-SnapshotEnsembleRegressor-08032024_135233/'
+##  path: '/Users/Fernando/out_from_cluster/BNNbnn-11032024_135959/'
+##  path: '/Users/Fernando/out_from_cluster/BNNbnn-11032024_153255/'
+##  path: '/Users/Fernando/out_from_cluster/BNNbnn-12032024_190554/'
+##  name: 'GradientBoostingRegressor_MLP_2_ckpt.pth'
+  name: 'dlModelWithoutHyperOpt_torch.pt'
+##########  name: 'dlModelWithoutHyperOpt.pt' # @1
 
 scaler:
-  feat: 'scaler_feat.pkl'
-  targ: 'scaler_targ.pkl'
-
+  feat: 'featScaler.pkl'
+  targ: 'targScaler.pkl'
+##  feat: 'scaler_feat.pkl' # @1
+##  targ: 'scaler_targ.pkl' # @1

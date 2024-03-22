@@ -37,21 +37,21 @@ class SaveFigs():
         info(additional=""):
         Prints the person's name and age.
     '''
-    def __init__(self, save_figs:bool, ds_file:str, root_save_figs:str, root:str):
-        self.save_figs=save_figs
+    def __init__(self,save:bool,ds_file:str,dir_save:str,root:str):
+        self.save=save
         self.ds_file=ds_file
-        self.root_save_figs=root_save_figs
+        self.dir_save=dir_save
         self.root=root
         
-        if self.save_figs:
-            self.folder_figs= gt.folder_to_save_figs(self.ds_file, self.root_save_figs, self.root)
+        if self.save:
+            self.folder_save= gt.folder_to_save_figs(self.ds_file, self.dir_save, self.root)
             ## check if folder exist, if not cerate this-.
-        is_folder_exist=ope(self.folder_figs)
+        is_folder_exist=ope(self.folder_save)
         if not is_folder_exist:
-            om(self.folder_figs)
-            print('The folder ===< {0}{1}{2} >=== was created.'.format('\t', self.folder_figs, '\t'))
+            om(self.folder_save)
+            print('The folder ===< {0}{1}{2} >=== was created.'.format('\t', self.dir_save, '\t'))
         else:
-            print('The folder ===< {0}{1}{2} >=== exists.'.format('\t', self.folder_figs, '\t'))
+            print('The folder ===< {0}{1}{2} >=== exists.'.format('\t', self.dir_save, '\t'))
     ## ======================================================================= END79
 
 if __name__=='__main__':
