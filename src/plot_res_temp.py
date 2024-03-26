@@ -41,7 +41,7 @@ class PlotPredRes():
         Prints the person's name and age.
     '''
     def __init__(self,dim:str,df_true:list,df_pred_rec:list,df_pred:list,iruned:list,
-                 feat_var:list,target_vars:list,idx_o:list):
+                 feat_var:list,target_vars:list):
         self.dim=dim # problem dimension ('2d' or '3d')-,
         self.df_true=df_true # list with Pandas.DataFrames, len(df_true)=cfg.nirun-.
         self.df_pred_rec=df_pred_rec # list with Pandas.DataFrames RECURSIVE, len(df_pred)=cfg.nirun-.
@@ -49,7 +49,6 @@ class PlotPredRes():
         self.iruned=iruned # list of Pandas.DataFrames, len(iruned)=cfg.nirun-.
         self.feature_var=feat_var
         self.target_var=target_vars
-        self.idx_o=idx_o # list to write $C^{out}_{ij}$ in order way in the upper right triangle-.
         ## self.feature_var=[var for var in df_true[0].columns if 'vgrad' in var or '_in' in var]
         ## self.target_var=[var for var in df_true[0].columns if '_out' in var]
         ## I choose one of the dfs (VPSC/IRUNs) to do the plots defined in this class-.
@@ -134,36 +133,35 @@ class PlotPredRes():
                         format='png', dpi=100) # -.
             
         ## str(iruned[ig])+'.png'), format='png', dpi=100) # -.
-        
+
         ## https://stackoverflow.com/questions/14379753/what-does-mean-in-python-function-definitions
         ## print(gt.calcula_elas_anys_coef.__annotations__['return'])
         ## print(gt.calcula_elas_anys_coef.__annotations__['return']['type'])
         ## print(gt.calcula_elas_anys_coef.__annotations__['return']['units'])
         ## print(gt.calcula_elas_anys_coef.__annotations__['return']['docstring'])
-        
+    
     def plot_C_VPSC_pred_vs_def_1(self,ds_name:str,dir_save:str):
         ''' plot $C^{VPSC,pred}_{ijkl}$ vs. $\varepsilon$ '''
-        
         for ig, df_model in enumerate(self.df):
             ## set seome matplotlib params
             dict_plt_rcParams,gs,fig,plette=self.set_plot_options_all_C(self.dim)
             plt.rcParams.update(dict_plt_rcParams)
-            nr,nc=6,6
-            fig,axes=plt.subplots(nrows=nr,ncols=nc,figsize=(20,10))
+            nr,ncol=6,6
+            fig,axes=plt.subplots(nrows=6,ncols=6,figsize=(20,10))
             idx=0
             for i in range(nr):
-                for j in range(nc):
+                for j in range(ncol):
                     ## distributions of errros/residuals-.
                     if i<=j:
                         ax=fig.add_subplot(axes[i][j])  # , sharex=True, sharey=False)
-                        col=self.target_var[self.idx_o[idx]]
+                        col=self.target_var[idx]
                         var=str(col).replace('_out','')
-                        x=self.df[0].strain
-                        y_true=self.df[0][str(var)+'_out']
-                        ## y_pred_rec=self.df_pred_rec[ig][str(var)+'_out'] # @1-.
-                        y_pred_rec=self.df_pred_rec[self.i_run][str(var)+'_out'] # RECURSIVE-.
+                        x=self.df.strain
+                        y_true=self.df[str(var_to_plot)+'_out']
+                        ## y_pred_rec=self.df_pred_rec[ig][str(var_to_plot)+'_out'] # @1-.
+                        y_pred_rec=self.df_pred_rec[self.i_run][str(var_to_plot)+'_out'] # RECURSIVE-.
                         ## y_pred=self.df_pred[ig][str(var_to_plot)+'_out'] # @1-.
-                        y_pred=self.df_pred[self.i_run][str(var)+'_out'] # NON_RECURSIVE-.
+                        y_pred=self.df_pred[self.i_run][str(var_to_plot)+'_out'] # NON_RECURSIVE-.
                         
                         plt.scatter(x=x,y=y_true,s=10,facecolors='none',
                                     edgecolor='k',marker='^',label='VPSC/true'
@@ -181,10 +179,10 @@ class PlotPredRes():
                         
                         ## plt.legend(loc=3)
                         plt.grid()
-                        ## plt.legend(loc=2)
+                        plt.legend(loc=2)
                         plt.tight_layout()
                         plt.xlabel(r'$\bar{\varepsilon}$')
-                        plt.ylabel('{0}'.format(var))
+                        plt.ylabel('{0}'.format(var_to_plot))
                         
                         ticks,labels=plt.xticks()
                         plt.xticks(ticks[::1], labels[::1])
@@ -205,7 +203,7 @@ class PlotPredRes():
             fig.legend(*ax.get_legend_handles_labels(),loc='lower center',ncol=4)
             ## plt.legend(lines, labels, loc = 'lower center', bbox_to_anchor = (0, -0.1, 1, 1),
             ##            bbox_transform = plt.gcf().transFigure)
-            
+        
             '''
             label= r'($\varepsilon^{VPSC}$, $\varepsilon^{Predicted}_{RECURSIVE}$)'+\
             r' and ($\eta^{VPSC}$ , $\eta^{Predicted}_{RECURSIVE}$) '+\
@@ -230,12 +228,13 @@ class PlotPredRes():
                         format='png', dpi=100) # -.
             
             ## str(iruned[ig])+'.png'), format='png', dpi=100) # -.
+
             ## https://stackoverflow.com/questions/14379753/what-does-mean-in-python-function-definitions
             ## print(gt.calcula_elas_anys_coef.__annotations__['return'])
             ## print(gt.calcula_elas_anys_coef.__annotations__['return']['type'])
             ## print(gt.calcula_elas_anys_coef.__annotations__['return']['units'])
             ## print(gt.calcula_elas_anys_coef.__annotations__['return']['docstring'])
-        
+
     ## distribution of VPSC/true and predicted $C^{out}_{ijkl}$ residual
     ## in all VPSC/IRUNs dataset (only with NON-RECURSIVE predictions)-.
     ## @staticmethod
@@ -302,7 +301,7 @@ class PlotPredRes():
                     ## distributions of errros/residuals-.
                     if i<=j:
                         ax=fig.add_subplot(axes[i][j])  # , sharex=True, sharey=False)
-                        col=self.target_var[self.idx_o[idx]]
+                        col=self.target_var[idx]
                         var=str(col).replace('_out','')
                         
                         # if I don't applied np.round the plot fail-.
@@ -405,113 +404,11 @@ class PlotPredRes():
                                      str(self.i_run)+'.png'),format='png',
                                      ## str(self.iruned[ig])+'.png'),format='png',  # @1-.
                         dpi=100) # -.
-    
-    def plot_C_VPSC_vs_C_pred_1(self,ds_name:str,dir_save:str):    
-        '''
-        plot $C^{VPSC/true}_{ijkl}$ vs. $C^{pred}_{ijkl}$-.
-        to study the correlation between theoretical and
-        predicted $C^{out}_{ijkl}-.
-        '''
-        ## for ig, df_model in enumerate(self.df_true): #  # @1 decomment this line to plot more than one IRUN-.
 
-        for ig, df_model in enumerate(self.df):
-            ## set seome matplotlib params
-            dict_plt_rcParams,gs,fig,plette=self.set_plot_options_all_C(self.dim)
-            plt.rcParams.update(dict_plt_rcParams)
-            nr,ncol=6,6
-            fig,axes=plt.subplots(nrows=6,ncols=6,figsize=(20,10))
-            idx=0
-            for i in range(nr):
-                for j in range(ncol):
-                    ## distributions of errros/residuals-.
-                    if i<=j:
-                        ax=fig.add_subplot(axes[i][j])  # , sharex=True, sharey=False)
-                        col=self.target_var[self.idx_o[idx]]
-                        var=str(col).replace('_out','')
-                        x=self.df[0].strain
-                        y_true=self.df[0][str(var)+'_out']
-                        ## y_pred_rec=self.df_pred_rec[ig][str(var)+'_out'] # @1-.
-                        y_pred_rec=self.df_pred_rec[self.i_run][str(var)+'_out'] # RECURSIVE-.
-                        ## y_pred=self.df_pred[ig][str(var_to_plot)+'_out'] # @1-.
-                        y_pred=self.df_pred[self.i_run][str(var)+'_out'] # NON_RECURSIVE-.
-                        
-                        plt.scatter(x=y_true,y=y_pred,s=10,facecolors='none',
-                                    edgecolor='k',marker='^',label='VPSC/true-pred/NON-REC'
-                                    # alpha=0.1, c='blue',
-                                    )
-                        plt.scatter(x=y_true,y=y_pred_rec,s=10,facecolors='none',
-                                    edgecolors='r',marker='o',label='VPSC/true-pred/RECURSIVE'
-                                    # alpha=0.1,c='blue',
-                                    )
-                        
-                        # adjust straight line (for non recursive aprroach)-.
-                        pearR=np.corrcoef(y_true,y_pred)[1,0]
-                        A=np.vstack([y_true,np.ones(len(y_true))]).T
-                        m,c=np.linalg.lstsq(A,y_pred)[0]
-                        color='b'
-                        plt.plot(y_true,y_true*m+c,color=color,label='Fit -- r = %6.4f'%(pearR))
-                        # adjust straight line (for recursive aprroach)-.
-                        pearR=np.corrcoef(y_true,y_pred_rec)[1,0]
-                        A=np.vstack([y_true,np.ones(len(y_true))]).T
-                        m,c=np.linalg.lstsq(A,y_pred_rec)[0]
-                        color='g'
-                        plt.plot(y_true,y_true*m+c,color=color,label='Fit -- r = %6.4f'%(pearR))
-                        
-                        ## plt.legend(loc=2)
-                        ## plt.plot(color='blue', label='Fit %6s, r = %6.2e'%(color,pearR))
-                        ## plt.plot(label='r = %6.2e'%(pearR))
-                        plt.grid()
-                        plt.tight_layout()
-                        
-                        plt.xlabel(r'$\bar{\varepsilon}$')
-                        plt.ylabel('{0}'.format(var))
-                        
-                        ## ticks,labels=plt.xticks()
-                        ## plt.xticks(ticks[::1], labels[::1])
-                        
-                        ##plt.suptitle('VPSC vs. PREDICTED elastic anyiotropy tensor components '+\
-                            ##             'In NON-ITERATIVE APPROACH for IRUN ={0}'.format(1))
-                        
-                        ## label= var_to_plot
-                        ## print(fig.get_size_inches()[1])
-                        ##plt.text(0.9, 0.25, label, color='g', fontsize=10,
-                        ##         horizontalalignment='right', verticalalignment='top',
-                        ##         backgroundcolor='1.0', transform=plt.gca().transAxes
-                        ##         )
-                        idx+=1
-                    else:
-                        axes[i][j].remove()
-                        
-            fig.legend(*ax.get_legend_handles_labels(),loc='lower center',ncol=4)
-            ## plt.legend(lines, labels, loc = 'lower center', bbox_to_anchor = (0, -0.1, 1, 1),
-            ##            bbox_transform = plt.gcf().transFigure)
-            
-            '''
-            label= r'($\varepsilon^{VPSC}$, $\varepsilon^{Predicted}_{RECURSIVE}$)'+\
-            r' and ($\eta^{VPSC}$ , $\eta^{Predicted}_{RECURSIVE}$) '+\
-            r', in function of $\bar{\varepsilon}$ '+ \
-            ' for {0} and IRUN ={1}'.format(str.split(ds_file1, '.')[0], iruned[ig], y=0.1)
-            '''
-            
-            label= r'$C_{{ij}}^{{VPSC/true}}=f(\bar{\varepsilon})$, and '+\
-                r'$C_{{ij}}^{{predicted_{{RECURSIVE}}}}=f(\bar{{\varepsilon}})$'\
-                ' for {0} and IRUN ={1}'.format(str.split(ds_name,'.')[0],self.i_run,y=0.1)
-                ## ' for {0} and IRUN ={1}'.format(str.split(ds_name,'.')[0],self.iruned[ig],y=0.1)  # @1-.
-            
-            fig.text(0.8,0.1,label,color='r',fontsize=12,
-                     horizontalalignment='right',verticalalignment='top',
-                     backgroundcolor='1.0'
-                     )
-            
-            plt.show()
-            fig.savefig(os.path.join(dir_save,'C_VPSC_true-Pred_REC_NONREC'+
-                                     str(self.i_run)+'.png'),format='png',
-                        ## str(self.iruned[ig])+'.png'),format='png',  # @1-.
-                        dpi=100) # -.
-    
-    def plot_eps_phi(self,ds_name:str,dir_save:str):
-        ''' plot $\varepsilon$ and $\phi$ vs. $\bar{\varepsilon}$ and 
-            ($C^{VPSC-true}_{ij}$ vs. $C^{pred-REC_NON-REC}_{ij}$-.
+    def plot_eps_eta(self,ds_name:str,dir_save:str):
+        ''' plotplot $\varepsilon$ and $\eta$ vs.
+        $\bar{\varepsilon}$ and RMSE of ($C^{VPSC-true}_{ij}$
+        $C^{pred-REC_NON-REC}_{ij}$
         '''
         ## for ig, df_model in enumerate(self.df_true): # @1 decomment this line to plot more than one IRUN-.
         ## for ig, (dfm,dfmp,dfmpr) in enumerate(zip(self.df_true,self.df_pred,self.df_pred_rec)):
@@ -520,45 +417,47 @@ class PlotPredRes():
             case='_out'
             ## https://stackoverflow.com/questions/5036700/how-can-you-dynamically-create-variables
             locals()['eps_teo_{0}'.format(self.i_run)],\
-                locals()['phi_teo_{0}'.format(self.i_run)]=ceac(
-                    dfm.loc[:,'c11'f'{case}'],
-                    dfm.loc[:,'c13'f'{case}'],dfm.loc[:,'c22'f'{case}'],
+                locals()['eta_teo_{0}'.format(self.i_run)]=ceac(
+                    dfm.loc[:,'c11'f'{case}'],dfm.loc[:,'c12'f'{case}'],
+                    dfm.loc[:,'c13'f'{case}'],dfm.loc[:,'c23'f'{case}'],
                     dfm.loc[:,'c33'f'{case}'],dfm.loc[:,'c44'f'{case}'],
                     dfm.loc[:,'c55'f'{case}'],dfm.loc[:,'c66'f'{case}']
                 )
             locals()['eps_pred_{0}'.format(self.i_run)],\
-                locals()['phi_pred_{0}'.format(self.i_run)]=ceac(
+                locals()['eta_pred_{0}'.format(self.i_run)]=ceac(
                     self.df_pred[self.i_run].loc[:,'c11'f'{case}'],
+                    self.df_pred[self.i_run].loc[:,'c12'f'{case}'],
                     self.df_pred[self.i_run].loc[:,'c13'f'{case}'],
-                    self.df_pred[self.i_run].loc[:,'c22'f'{case}'],
+                    self.df_pred[self.i_run].loc[:,'c23'f'{case}'],
                     self.df_pred[self.i_run].loc[:,'c33'f'{case}'],
                     self.df_pred[self.i_run].loc[:,'c44'f'{case}'],
                     self.df_pred[self.i_run].loc[:,'c55'f'{case}'],
                     self.df_pred[self.i_run].loc[:,'c66'f'{case}']
                 )
             locals()['eps_pred_rec_{0}'.format(self.i_run)],\
-                locals()['phi_pred_rec_{0}'.format(self.i_run)]=ceac(
+                locals()['eta_pred_rec_{0}'.format(self.i_run)]=ceac(
                     self.df_pred_rec[self.i_run].loc[:,'c11'f'{case}'],
+                    self.df_pred_rec[self.i_run].loc[:,'c12'f'{case}'],
                     self.df_pred_rec[self.i_run].loc[:,'c13'f'{case}'],
-                    self.df_pred_rec[self.i_run].loc[:,'c22'f'{case}'],
+                    self.df_pred_rec[self.i_run].loc[:,'c23'f'{case}'],
                     self.df_pred_rec[self.i_run].loc[:,'c33'f'{case}'],
                     self.df_pred_rec[self.i_run].loc[:,'c44'f'{case}'],
                     self.df_pred_rec[self.i_run].loc[:,'c55'f'{case}'],
                     self.df_pred_rec[self.i_run].loc[:,'c66'f'{case}']
                 )
 
-            ## epsilon & phi-.
+            ## epsilon & eta-.
             eps_teo=eval('eps_teo_{0}'.format(self.i_run))
             eps_pred=eval('eps_pred_{0}'.format(self.i_run))
             eps_pred_rec=eval('eps_pred_rec_{0}'.format(self.i_run))
-            phi_teo=eval('phi_teo_{0}'.format(self.i_run))
-            phi_pred=eval('phi_pred_{0}'.format(self.i_run))
-            phi_pred_rec=eval('phi_pred_rec_{0}'.format(self.i_run))
+            eta_teo=eval('eta_teo_{0}'.format(self.i_run))
+            eta_pred=eval('eta_pred_{0}'.format(self.i_run))
+            eta_pred_rec=eval('eta_pred_rec_{0}'.format(self.i_run))
             
             m_eps_pred,c_eps_pred,pearR_pred_eps=al(eps_teo,eps_pred)
             m_eps_pred_rec,c_eps_pred_rec,pearR_pred_rec_eps=al(eps_teo,eps_pred_rec)
-            m_phi_pred,c_phi_pred,pearR_pred_phi=al(phi_teo,phi_pred)
-            m_phi_pred_rec,c_phi_pred_rec,pearR_pred_rec_phi=al(phi_teo,phi_pred_rec)
+            m_eta_pred,c_eta_pred,pearR_pred_eta=al(eta_teo,eta_pred)
+            m_eta_pred_rec,c_eta_pred_rec,pearR_pred_rec_eta=al(eta_teo,eta_pred_rec)
 
             fig,axs=plt.subplots(2,2,figsize=(18, 9),sharey='row')
             ## axs=np.ravel(axs) ##     ax=ax.flatten() ## ax=ax.flatten()
@@ -623,16 +522,16 @@ class PlotPredRes():
             ax[1].grid()
 
             ## plot NON_RECURSIVE PREDICTION-.
-            label=r"$\phi^{{{0}}}_{{{1}}}$".format('VPSC',self.i_run)
-            ax[2].scatter(x=dfm['strain'],y=phi_teo,s=20,facecolors='none',
+            label=r"$\eta^{{{0}}}_{{{1}}}$".format('VPSC',self.i_run)
+            ax[2].scatter(x=dfm['strain'],y=eta_teo,s=20,facecolors='none',
                           edgecolors='r',alpha=0.5,marker='^',
                           c='blue',label=label)
-            label=r"$\phi^{{{0}}}_{{{1}}}$".format('NON-REC',self.i_run)
-            ax[2].scatter(x=dfm['strain'],y=phi_pred,s=20,facecolors='none',
+            label=r"$\eta^{{{0}}}_{{{1}}}$".format('NON-REC',self.i_run)
+            ax[2].scatter(x=dfm['strain'],y=eta_pred,s=20,facecolors='none',
                           edgecolors='black',alpha= 1.0,marker='o',
                           label=label)
-            label=r"$\phi^{{{0}}}_{{{1}}}$".format('REC',self.i_run)
-            ax[2].scatter(x=dfm['strain'],y=phi_pred_rec,s=20,facecolors='none',
+            label=r"$\eta^{{{0}}}_{{{1}}}$".format('REC',self.i_run)
+            ax[2].scatter(x=dfm['strain'],y=eta_pred_rec,s=20,facecolors='none',
                           edgecolors='g',alpha= 1.0,marker='o',
                           label=label)
 
@@ -640,11 +539,11 @@ class PlotPredRes():
             ax[2].legend()
             ## ax.set_title(r'$\varepsilon$')
             ax[2].set_xlabel(r'$\bar\varepsilon$')
-            ax[2].set_ylabel(r'$\phi$')
+            ax[2].set_ylabel(r'$\eta$')
 
-            label= r"$\phi^{{{0}}}_{{{1}}}-\phi^{{{2}}}_{{{1}}}$".\
+            label= r"$\eta^{{{0}}}_{{{1}}}-\eta^{{{2}}}_{{{1}}}$".\
                 format('PRED',self.i_run,'VPSC')
-            ax[3].scatter(x=phi_teo,y=phi_pred,s=40,facecolors='none',edgecolors='black',
+            ax[3].scatter(x=eta_teo,y=eta_pred,s=40,facecolors='none',edgecolors='black',
                           alpha=1.0,marker='o',label=label## c='magenta',
                           ## label=r'$\varepsilon^{PRED}_{IRUN=4_{NonIterative}}-\varepsilon^{TEO}_{IRUN=4}$',
                           ## facecolors='none'
@@ -653,9 +552,9 @@ class PlotPredRes():
                           # marker='^'
                           # c='blue'
                           )
-            label= r"$\phi^{{{0}}}_{{{1}}}-\phi^{{{2}}}_{{{1}}}$".\
+            label= r"$\eta^{{{0}}}_{{{1}}}-\eta^{{{2}}}_{{{1}}}$".\
                 format('PRED-REC',self.i_run,'VPSC')
-            ax[3].scatter(x=phi_teo,y=phi_pred_rec,s=40,facecolors='none',edgecolors='m',
+            ax[3].scatter(x=eta_teo,y=eta_pred_rec,s=40,facecolors='none',edgecolors='m',
                           alpha=1.0,marker='p',label=label## c='magenta',
                           ## label=r'$\varepsilon^{PRED}_{IRUN=4_{NonIterative}}-\varepsilon^{TEO}_{IRUN=4}$',
                           ## facecolors='none'
@@ -666,33 +565,33 @@ class PlotPredRes():
                           )
 
             color='red'
-            ax[3].plot(phi_teo,phi_teo*m_phi_pred+c_phi_pred,
+            ax[3].plot(eta_teo,eta_teo*m_eta_pred+c_eta_pred,
                        color=color,
-                       label="Fit -- r = %6.4f"%(pearR_pred_phi))
+                       label="Fit -- r = %6.4f"%(pearR_pred_eta))
             color='blue'
-            ax[3].plot(phi_teo,phi_teo*m_phi_pred_rec+c_phi_pred_rec,
+            ax[3].plot(eta_teo,eta_teo*m_eta_pred_rec+c_eta_pred_rec,
                        color=color,
-                       label="Fit -- r = %6.4f"%(pearR_pred_rec_phi))
+                       label="Fit -- r = %6.4f"%(pearR_pred_rec_eta))
             
-            ax[3].set_xlabel(r'$\phi^{Predicted}$')
-            ax[3].set_ylabel(r'$\phi^{VPSC-True}$')
+            ax[3].set_xlabel(r'$\eta^{Predicted}$')
+            ax[3].set_ylabel(r'$\eta^{VPSC-True}$')
             ax[3].legend(loc=2)
             ax[3].grid()
 
         eps_rmse_pred=eermse(eps_teo,eps_pred)
         eps_rmse_pred_rec=eermse(eps_teo,eps_pred_rec)
-        phi_rmse_pred= eermse(phi_teo,phi_pred)
-        phi_rmse_pred_rec=eermse(phi_teo,phi_pred_rec)
+        eta_rmse_pred= eermse(eta_teo,eta_pred)
+        eta_rmse_pred_rec=eermse(eta_teo,eta_pred_rec)
 
         label_eps='RMSE_NonRec={0}{1}RMSE_Rec={2}'.\
             format(np.round(eps_rmse_pred,9),'\n',np.round(eps_rmse_pred_rec,9))
-        label_phi='RMSE_NonRec={0}{1}RMSE_Rec={2}'.\
-            format(np.round(phi_rmse_pred,9),'\n',np.round(phi_rmse_pred_rec,9))
+        label_eta='RMSE_NonRec={0}{1}RMSE_Rec={2}'.\
+            format(np.round(eta_rmse_pred,9),'\n',np.round(eta_rmse_pred_rec,9))
         ax[0].text(0.4, 0.8, label_eps, color='g', fontsize=10,
                    horizontalalignment='right', verticalalignment='top',
                    backgroundcolor='1.0', transform=ax[0].transAxes, # transform=ax[0].gca().transAxes
                    )
-        ax[2].text(0.4, 0.8, label_phi, color='g', fontsize=10,
+        ax[2].text(0.4, 0.8, label_eta, color='g', fontsize=10,
                    horizontalalignment='right', verticalalignment='top',
                    backgroundcolor='1.0', transform= ax[2].transAxes, # transform=ax[0].gca().transAxes
                    )
@@ -717,7 +616,7 @@ class PlotPredRes():
         ## exit(1)
         '''
         ## https://matplotlib.org/stable/gallery/text_labels_and_annotations/tex_demo.html
-        eq2= (r'$\phi=\frac{1/2(C_{12}+C_{23})}{3/8(C_{11}+C_{33})+1/4C_{13}+1/2C_{55}-'\
+        eq2= (r'$\eta=\frac{1/2(C_{12}+C_{23})}{3/8(C_{11}+C_{33})+1/4C_{13}+1/2C_{55}-'\
         r'(C_{44}+C_{66})}$')
         ax[1].text(2.25, 1.00, eq2, color='r', fontsize=16,
         horizontalalignment='right', verticalalignment='top',
@@ -725,7 +624,7 @@ class PlotPredRes():
         )
         
         ##plt.suptitle(f'Comparison of '+
-        ##             r'$\varepsilon$ and $\phi$ '+
+        ##             r'$\varepsilon$ and $\eta$ '+
         ##             f'elastic anisotropy coefficients '+
         ##             ## f'for IRUN = {str(df_model)[-1]} (not used in training model)'+
         ##             'for {0} IRUNs predicted with ITERATIVE approach using {1}{2}.'.
@@ -733,7 +632,7 @@ class PlotPredRes():
         ##             )
         plt.show()
 
-        fig.savefig(os.path.join(dir_save,'EpsPhi_'+str(self.i_run)+'.png'),format='png',dpi=100)
+        fig.savefig(os.path.join(dir_save,'EpsEta_'+str(self.i_run)+'.png'),format='png',dpi=100)
     
     def set_plot_options_all_C(self,dim):
         ''' set genreal option to plot all C tensor component values-.'''

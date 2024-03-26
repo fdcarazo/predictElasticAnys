@@ -2,10 +2,10 @@ gen_options:
   save: True
   dir_save: '/Users/Fernando/temp/'
   dim: '2D'  # by default the BC is applied in plane (1-2) == (x-y)-.
-  nirun: 1000 # number of cases VPSC/IRUNs, used in statisticalPlots (i.e. src/plot_res_statistical.py)-.
+  nirun: 2 # number of cases VPSC/IRUNs, used in statisticalPlots (i.e. src/plot_res_statistical.py)-.
   irun: 'random' # 'random' or int. How select the VPSC's/IRUN's cases from dataset-.
   nnn: 10 # number of NN to be used in uncertainty determination-.
-  quart: 10 # uncertaninty interval of 95%-.
+  quart: 2 # uncertaninty interval of 95%-.
   
 dataset:
   path: '/Users/Fernando/posDocMontpellier2022/AyV/ds/'
@@ -17,15 +17,17 @@ dataset:
   name: 'db3-SZModel1-str75-100.csv'
 ##  name: 'db3-SZModel1-str100-130.csv'
 ##  name: db3-SS_0_10.csv
-##  name: 'db3-SZModel1-str130-160.csv' 
-
+##  name: 'db3-SZModel1-str130-160.csv'
+ 
 model:
 ##  path: '/Users/Fernando/out_from_cluster/mlp/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_123041/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_140533/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_165628/'
 ##   path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_155009/'
-  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_171915/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_171915/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-25032024_094416/'
+  path: '/Users/Fernando/out_from_cluster/MLP-_-25032024_111508/'
 ##    path: '/Users/Fernando/out_from_cluster/MLP-19032024_181619/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-12032024_092116/'
 ##  path: '/Users/Fernando/out_from_cluster/resDL_35_SS/'

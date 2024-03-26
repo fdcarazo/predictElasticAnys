@@ -60,7 +60,7 @@ class Dataset():
                   'c16_out', 'c45_out', 'c35_out', 'c25_out', 'c15_out', 'c34_out',
                   'c24_out', 'c14_out', 'c23_out', 'c13_out', 'c12_out','strain']
             '''
-            cols=['irun','vgrad11', 'vgrad12', 'vgrad21','c11_in',
+            cols=['irun','vgrad11', 'vgrad22', 'vgrad12', 'vgrad21','c11_in',
                   'c22_in', 'c33_in', 'c44_in', 'c55_in', 'c66_in', 'c56_in',
                   'c46_in', 'c36_in', 'c26_in', 'c16_in', 'c45_in', 'c35_in', 
                   'c25_in', 'c15_in', 'c34_in', 'c24_in', 'c14_in', 'c23_in',
@@ -87,9 +87,14 @@ class Dataset():
         df=pd.read_csv(self.df_name[0], low_memory=False, usecols=cols)
         
         ## get features and targets variables names-.
-        target_names, feature_names=[col for col in df.columns if '_out' in col],\
+        target_names,feature_names=[col for col in df.columns if '_out' in col],\
             [col for col in df.columns if '_in' in col or 'vgrad' in col]
-        return df, feature_names, target_names
+
+        ## order $C^{out}$ to print in matrix form-.
+        idx_out_order=[0,20,19,17,14,10, 1,18,16,13,9, 2,15,12,8, 3,11,7, 4,6, 5]
+        ## target_names_ord=[target_names[idx] for idx in idx_out_order]
+        
+        return df,feature_names,target_names,idx_out_order
 
 if __name__=='__main__':
     dataset_path='/Users/Fernando/temp/' # in a real life it's read in Config class-.

@@ -1,11 +1,11 @@
 #!/usr/bin/python3.9
 # -*- coding: utf-8 -*-
 ##
-## class to predict using recursive approach-.
+## class to predict using non-recursive and recursive approach-.
 ## @AUTHOR: Fernando Diego Carazo (@buenaluna) -.
 ##
-## start_date: Tue Feb  6 16:10:28 CET 2024-.
-## last_modify (Fr): Fri Mar 15 11:12:48 CET 2024-.
+## start_date: Tue Feb 6 16:10:28 CET 2024-.
+## last_modify (Fr): Tue Mar 26 09:00:10 CET 2024-.
 ##
 ## ======================================================================= INI79
 
@@ -44,15 +44,14 @@ class Predict():
         self.sca_feat=sca_feat
         self.sca_targ=sca_targ
         self.irun=ir
+        self.n_nn=nnn # number of neural networks (make sense for BNN)-.
         self.feat_list=feat_list
         self.targ_list=targ_list
-        self.n_nn=nnn # number of neural networks (make sense for BNN)-.
+        
         self.L=[var for var in self.feat_list if 'vgrad' in var]
-        self.L=['vgrad11', 'vgrad12', 'vgrad21']
         self.C_in=[var for var in self.feat_list if '_in' in var]
         self.C_out=[var for var in self.targ_list if '_out' in var]        
-        self.feat_lab=self.L+self.C_in
-        self.feat_plus_targ=self.L+self.C_in+self.C_out # features+targets-.
+        self.feat_plus_targ=self.feat_list+self.C_out # features+targets-.
 
     def pred_recursive_main(self,n_cases):
         '''
@@ -60,38 +59,37 @@ class Predict():
         approaches-.
         Attributes (2BeCompleted-.)
         ----------
-        n_cases: number if VPSC/IRUNS to predict (int: both predictions
-        or None: only NON-RECURSIVE prediction)-.
+        n_cases: number if VPSC/IRUNS to predict-.
         NOTE - NOTE - NOTE
         ==================
-        ** n_cases>1: # predict using RERCURSIVE mode (used in statistical analysisis or plots)
-           i.e. src/plot_res.py -.
-        ** n_cases==1: # only predict using NON-RERCURSIVE mode (used in RESIDUALS plot)
-           i.e. src/plot_res_statistical.py
+        ** n_cases>1: predict using RERCURSIVE mode (used in statistical analysisis or plots)
+                      i.e. src/plot_res_statistical.py -.
+        ** n_cases==1: only predict using NON-RERCURSIVE mode (used in RESIDUALS plot)
+                       i.e. src/plot_res.py
         ** other n_cases (i.e. 0):
            use one IRUN/VPSC with more than one NN (), used to study the uncertanity
-           of the model, i.e. serc/bnn_uncertainty.py -.
+           of the model, i.e. src/bnn_uncertainty.py -.
         Return  (2BeCompleted-.)
         -------
         lists with:
         df_vpsc: df from VPSC/true,
-        def_pred: df predicted in classical way,
+        def_pred: df predicted in non recursive way,
         df_rec: df predicted in recursive way,
         iruned: iruns.
         ====
         '''
         ## df_vpsc= dict() # 2BeDo. To save {key:'df_name' (str), val:df (DataFrame)}-.
-        df_vpsc,df_pred,df_rec,iruned=list(),list(),list(),list()
+        df_vpsc,df_pred,df_rec,iruned=list(),list(),list(),list() # idem [],[],[]
         
         ## if n_cases is not None:
         if n_cases>1:
             for i in range(n_cases):
-                if self.irun=='random': irun=np.random.randint(self.df['irun'].min(), self.df['irun'].max())
+                if self.irun=='random': irun=np.random.randint(self.df['irun'].min(),self.df['irun'].max())
                 iruned.append(irun)
                 df_vpsc.append(self.df[self.df['irun']==irun])
 
             for ig, df_model in enumerate(df_vpsc):
-                X_test,y_test=df_model.loc[:,self.feat_lab],df_model.loc[:,self.C_out] # this DB has STRAIN column-.
+                X_test,y_test=df_model.loc[:,self.feat_list],df_model.loc[:,self.C_out] # not used now-.
 
                 ## ===== 1 ====== predict using RECURSIVE approach-.
                 start_time=time.time()
@@ -100,16 +98,16 @@ class Predict():
 
                 ## ===== 2 ====== predict using NON-RECURSIVE/CLASSICAL approach-.
                 start_time=time.time()
-                df_pred_1=pd.DataFrame(np.round(self.predict(df_model.loc[:,self.feat_lab]),2),columns=self.C_out)
+                df_pred_1=pd.DataFrame(np.round(self.predict(df_model.loc[:,self.feat_list]),2),columns=self.C_out)
                 self.print_pred_time('NON-RECURSIVE',iruned[ig],abs(start_time-time.time()))
                 
                 ## remove in_features features/variables in predicted dataset-.
                 df_recur_1.drop(columns=df_recur_1.columns.difference(self.C_out),inplace=True)
-                ## add $C^{ij}_{out}$ predicted tensor to df_fec list-.
+                ## add $C^{ij}_{out}$ predicted tensor to df_pred and df_rec lists-.
                 df_rec.append(df_recur_1); df_pred.append(df_pred_1)
         elif n_cases==1: # only predict using NON-RERCURSIVE mode (used in RESIDUALS plot)-.
             start_time=time.time()
-            df_pred_1=pd.DataFrame(np.round(self.predict(self.df.loc[:,self.feat_lab]),2),columns=self.C_out)
+            df_pred_1=pd.DataFrame(np.round(self.predict(self.df.loc[:,self.feat_list]),2),columns=self.C_out)
             self.print_pred_time('NON-RECURSIVE',None,abs(start_time-time.time()))
             df_vpsc.append(self.df); df_pred.append(df_pred_1)
         else: # by default I assume the prediction is for BNN (but the advice is to pass 0 (zero))-.
@@ -118,8 +116,8 @@ class Predict():
                 max_irun=max(self.df['irun'].unique().astype(int))
                 i_run=np.random.randint(1,max_irun); df=self.df[self.df['irun']==i_run]
             else:
-                ##i_run=self.df['irun'].unique().astype(int); df=self.df[self.df['irun']==i_run]
-                ##i_run=self.df['irun'].unique().astype(int) ; input(88) ##; df=self.df[self.df['irun']==i_run]
+                ## i_run=self.df['irun'].unique().astype(int); df=self.df[self.df['irun']==i_run]
+                ## i_run=self.df['irun'].unique().astype(int) ; input(88) ##; df=self.df[self.df['irun']==i_run]
                 i_run=max(self.df['irun'].unique().astype(int))
                 print(i_run);input(7); df=self.df[self.df['irun']==i_run];input(7)
                 print(type(self.df['irun'].unique().astype(int))); input(88)
@@ -135,19 +133,19 @@ class Predict():
 
                 ## ===== 2 ====== predict using NON-RECURSIVE/CLASSICAL approach-.
                 start_time=time.time()
-                df_pred_1=pd.DataFrame(np.round(self.predict(df.loc[:,self.feat_lab]),2),columns=self.C_out)
+                df_pred_1=pd.DataFrame(np.round(self.predict(df.loc[:,self.feat_list]),2),columns=self.C_out)
                 self.print_pred_time('NON-RECURSIVE for BNN',None,abs(start_time-time.time()))
                 
                 ## remove in_features features/variables in predicted dataset-.
                 df_recur_1.drop(columns=df_recur_1.columns.difference(self.C_out),inplace=True)
-                ## add $C^{ij}_{out}$ predicted tensor to df_fec list-.
+                ## add $C^{ij}_{out}$ predicted tensor to df_pred and df_rec lists-.
                 df_rec.append(df_recur_1); df_pred.append(df_pred_1)
 
         return df_vpsc,df_rec,df_pred,iruned
     
-    ## functio to calculate $C^{ij}_{out}$ using predictive approach-.
-    def pred_rec(self, dfin):
-        ''' predict in a recursive way WITH A WHOLE DF NORMALIZED '''
+    ## function/method to calculate $C^{ij}_{out}$ using predictive approach-.
+    def pred_rec(self,dfin):
+        ''' predict using recursive approach WITH A WHOLE DF NORMALIZED '''
         dfin=dfin.reset_index(drop=True) # because in function of irun it has different indexs values-.
         df_iter=pd.DataFrame(columns=self.feat_plus_targ) # create an empty dataset-.
 
@@ -160,7 +158,7 @@ class Predict():
             if i==0:
                 L=dfin.loc[i,self.L]
                 Cijkl_in=dfin.loc[i,self.C_in]
-                X=dfin.loc[i,self.feat_lab]
+                X=dfin.loc[i,self.feat_list]
             else: #
                 L=dfin.loc[i,self.L]
                 ## when don't use all $C^{out}{ij}$ variables, you should specify which
