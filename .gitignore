@@ -22,3 +22,5 @@ train_val_BNN.py
 train_val_FFNN-OK_05032024.py
 train_val_MAML.py
 MLP_transf.py
+# default folders and files
+__pycache__
