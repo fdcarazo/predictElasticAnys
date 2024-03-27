@@ -328,19 +328,17 @@ class PlotResWithStatistics(PlotPredRes):
             delta_cij_pred=pd.DataFrame(columns=self.target_var)
             delta_cij_pred_rec=pd.DataFrame(columns=self.target_var)
 
-            delta_cij_pred=delta_cij_pred.append(np.round(np.abs(
-                self.df_true[idf][self.target_var].values-self.df_pred[idf]),7),
-                                                 ignore_index=True)
-            delta_cij_pred_rec=delta_cij_pred_rec.append(np.round(np.abs(
-                self.df_true[idf][self.target_var].values-self.df_pred_rec[idf]),7),
-                                                         ignore_index=True)
+            delta_cij_pred=pd.concat([delta_cij_pred,np.round(np.abs(
+                self.df_true[idf][self.target_var].values-self.df_pred[idf]),2)])
+            delta_cij_pred_rec=pd.concat([delta_cij_pred_rec,np.round(np.abs(
+                self.df_true[idf][self.target_var].values-self.df_pred_rec[idf]),2)])
             ## add strain column-.
             delta_cij_pred['strain']=df_model.strain.values
             delta_cij_pred_rec['strain']=df_model.strain.values
 
             ## save IRUN error in general pandasDF-.
-            delta_cij_pred_strain=delta_cij_pred_strain.append(delta_cij_pred,ignore_index=True)
-            delta_cij_pred_rec_strain=delta_cij_pred_rec_strain.append(delta_cij_pred_rec,ignore_index=True)
+            delta_cij_pred_strain=pd.concat([delta_cij_pred_strain,delta_cij_pred])
+            delta_cij_pred_rec_strain=pd.concat([delta_cij_pred_rec_strain,delta_cij_pred_rec])
 
         # 2Flat MultiIndex columns-.
         result_pred=delta_cij_pred_strain.groupby('strain').agg([np.mean, np.std]).reset_index()
@@ -435,7 +433,6 @@ class PlotResWithStatistics(PlotPredRes):
         plt.show()
         fig.savefig(os.path.join(dir_save,'DeltaCijkl.png'),format='png',dpi=100)
         
-        
     def plot_diff_eps_phi(self,ds_name:str,dir_save:str):
         '''
         method to calculate the mean and standard deviation of the difference
@@ -501,6 +498,7 @@ class PlotResWithStatistics(PlotPredRes):
             delta_phi_pred_rec['strain']=dfm.loc[:,'strain'].values
 
             ## save IRUN error in general pandasDF-.
+            '''
             delta_eps_pred_strain=delta_eps_pred_strain.append(delta_eps_pred,
                                                                ignore_index=True)
             delta_eps_pred_rec_strain=delta_eps_pred_rec_strain.append(delta_eps_pred_rec,
@@ -509,6 +507,11 @@ class PlotResWithStatistics(PlotPredRes):
                                                                ignore_index=True)
             delta_phi_pred_rec_strain=delta_phi_pred_rec_strain.append(delta_phi_pred_rec,
                                                                        ignore_index=True)
+            '''
+            delta_eps_pred_strain=pd.concat([delta_eps_pred_strain,delta_eps_pred])
+            delta_eps_pred_rec_strain=pd.concat([delta_eps_pred_rec_strain,delta_eps_pred_rec])
+            delta_phi_pred_strain=pd.concat([delta_phi_pred_strain,delta_phi_pred])
+            delta_phi_pred_rec_strain=pd.concat([delta_phi_pred_rec_strain,delta_phi_pred_rec])
 
         ## 2Flat MultiIndex columns-.
         result_eps_pred=delta_eps_pred_strain.groupby('strain').agg(['mean','std']).reset_index()
@@ -636,9 +639,13 @@ class PlotResWithStatistics(PlotPredRes):
             dist_C_pred['strain']=dfm.loc[:,'strain'].values
             dist_C_pred_rec['strain']=dfm.loc[:,'strain'].values 
             ## save IRUN error in general pandasDF-.
+            '''
             dist_C_pred_strain=dist_C_pred_strain.append(dist_C_pred,ignore_index=True)
             dist_C_pred_rec_strain=dist_C_pred_rec_strain.append(dist_C_pred_rec,ignore_index=True)
-            
+            '''
+            dist_C_pred_strain=pd.concat([dist_C_pred_strain,dist_C_pred])
+            dist_C_pred_rec_strain=pd.concat([dist_C_pred_rec_strain,dist_C_pred_rec])
+
         result_dist_C_pred=dist_C_pred_strain.groupby('strain').agg([np.mean, np.std]).reset_index()
         result_dist_C_pred.columns=result_dist_C_pred.columns.map('_'.join) # 2Flat MultiIndex columns-.
         result_dist_C_pred_rec=dist_C_pred_rec_strain.groupby('strain').agg([np.mean, np.std]).reset_index()
