@@ -22,7 +22,7 @@ from pathlib import Path
 import utils # IMPORTANT: if I don't write this 2plot/utils/__init__.py is not read-.
 import src
 ## import models
-from version import mod_versions as mv
+#from version import mod_versions as mv
 
 from utils.gen_tools import get_args as ga, write_C_for_mtex as wcfm
 from utils import gen_tools as gt
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     config=ga(config_file)
     
     ## list the name and versions of the main modules used-.
-    a=mv(); a.open_save_modules()
+    #a=mv(); a.open_save_modules()
 
     ## call main-.
     val=main(config)
