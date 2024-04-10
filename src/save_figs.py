@@ -49,9 +49,9 @@ class SaveFigs():
         is_folder_exist=ope(self.folder_save)
         if not is_folder_exist:
             om(self.folder_save)
-            print('The folder ===< {0}{1}{2} >=== was created.'.format('\t', self.dir_save, '\t'))
+            print('The folder ===< {0}{1}{2} >=== was created.'.format('\t', self.folder_save, '\t'))
         else:
-            print('The folder ===< {0}{1}{2} >=== exists.'.format('\t', self.dir_save, '\t'))
+            print('The folder ===< {0}{1}{2} >=== exists.'.format('\t', self.folder_save, '\t'))
     ## ======================================================================= END79
 
 if __name__=='__main__':

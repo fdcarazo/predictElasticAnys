@@ -82,10 +82,8 @@ class Predict():
         ## df_vpsc= dict() # 2BeDo. To save {key:'df_name' (str), val:df (DataFrame)}-.
         df_vpsc,df_pred,df_rec,iruned=list(),list(),list(),list() # idem [],[],[]
         
-        print("is one or n cases ?")
         ## if n_cases is not None:
         if n_cases>1:
-            print("get n_cases")
             for i in range(n_cases):
                 if self.irun=='random': irun=np.random.randint(self.df['irun'].min(),self.df['irun'].max())
                 iruned.append(irun)
@@ -109,14 +107,12 @@ class Predict():
                 ## add $C^{ij}_{out}$ predicted tensor to df_pred and df_rec lists-.
                 df_rec.append(df_recur_1); df_pred.append(df_pred_1)
         elif n_cases==1: # only predict using NON-RERCURSIVE mode (used in RESIDUALS plot)-.
-            print("get one case")
             start_time=time.time()
             df_pred_1=pd.DataFrame(np.round(self.predict(self.df.loc[:,self.feat_list]),2),columns=self.C_out)
             self.print_pred_time('NON-RECURSIVE',None,abs(start_time-time.time()))
             df_vpsc.append(self.df); df_pred.append(df_pred_1)
         else: # by default I assume the prediction is for BNN (but the advice is to pass 0 (zero))-.
             ## select VPSC/IRUN case (in this case I only have one df or IRUN/VPSC)-.
-            print("get none case")
             if len(list(self.df['irun'].unique()))>1: # to prevent errors when run one case with strain > 2.0-.
                 max_irun=max(self.df['irun'].unique().astype(int))
                 i_run=np.random.randint(1,max_irun); df=self.df[self.df['irun']==i_run]

@@ -11,6 +11,8 @@
 from pathlib import Path
 import yaml
 import os
+from os.path import exists as ope
+from os import makedirs as om
 import numpy as np
 from sklearn.metrics import mean_squared_error,r2_score
 from numpy import linalg as LA
@@ -199,7 +201,16 @@ def write_C_for_mtex(df_vpsc,df_pred_rec,df_pred,dir_save:str,case_name:str):
         
         ## print(strain['strain'].iloc[0])
         ## print(strain.loc[il,'strain'])
-        f_name=dir_save+key+'.txt'
+
+        folder_C_save = dir_save + '/' + case_name + "_others"
+        is_folder_exist=ope(folder_C_save)
+        if not is_folder_exist:
+          om(folder_C_save)
+          print('The folder ===< {0}{1}{2} >=== was created.'.format('\t', folder_C_save, '\t'))
+        else:
+           print('The folder ===< {0}{1}{2} >=== exists.'.format('\t', folder_C_save, '\t'))
+
+        f_name = folder_C_save + '/' +key+'.txt'
 
         if os.path.exists(f_name): os.remove(f_name)
         f=open(f_name,'a')
