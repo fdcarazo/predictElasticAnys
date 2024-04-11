@@ -86,6 +86,7 @@ class Predict():
         if n_cases>1:
             for i in range(n_cases):
                 if self.irun=='random': irun=np.random.randint(self.df['irun'].min(),self.df['irun'].max())
+                else: irun = int(self.irun)
                 iruned.append(irun)
                 df_vpsc.append(self.df[self.df['irun']==irun])
 
