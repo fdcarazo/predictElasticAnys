@@ -14,9 +14,9 @@ dataset:
 ##  name: 'db3-CFMORn1-90deg-resc.csv'
 ##  name: 'db3-CFMORn1-45deg-resc.csv'
 ##  name: 'db3-PS-resc.csv'
-##  name: 'db3-SS.csv'
+  name: 'db3-SS.csv'
 ##  name: 'db3-SSalldirs.csv'
-  name: 'db3-SZModel1-str75-100.csv'
+##  name: 'db3-SZModel1-str75-100.csv'
 ##  name: 'db3-SZModel1-str100-130.csv'
 ##  name: db3-SS_0_10.csv
 ##  name: 'db3-SZModel1-str130-160.csv'

@@ -82,14 +82,15 @@ def folder_to_save_figs(ds_file_name: str, root_save_figs: str, r) -> str:
 rd={'type':float, 'units':'adimensional',
     'docstring':'anisotropy coefficients according to: et al.-'
     }
-def calcula_elas_anys_coef(c11, c12, c13, c23, c33, c44, c55, c66)->rd:
+def calcula_elas_anys_coef(c11, c13, c22, c33, c44, c55, c66)->rd:
     '''
     function to calculate anisotropy coefficients
     according to: et al.-.
     '''
     epsilon=( 1./8.*(c11+c33)- 1./4.*c13+ 1./2.*c55 ) / ( 1./2.*(c44+c66))
-    eta= (1./2.* (c12+c23))/ (3./8.*(c11+c33)+ 1./4.*c13+ 1./2.*c55- (c44+c66))
-    return epsilon, eta
+    ## eta= (1./2.* (c12+c23))/ (3./8.*(c11+c33)+ 1./4.*c13+ 1./2.*c55- (c44+c66))
+    phi= (c22)/ (3./8.*(c11+c33)+ 1./4.*c13+ 1./2.*c55)
+    return epsilon, phi
 
 # - =======================================================================INI79
 ## 2-5- get the arguments from the config file-.
