@@ -49,7 +49,7 @@ def main(config) -> int:
     ##    names-.
     ds_obj=ds(cfg_obj.ds_path,cfg_obj.ds_file)
     df_main,feat_var,tar_var,idx_o=ds_obj.load_ds(cfg_obj.dim) # idx_o: to put in shape $C^{out}_{ij}$-.
-
+    
     '''
     ndf=range(1,6)
     df_main_list=[df_main[df_main['irun']==idx] for idx in ndf]
@@ -89,13 +89,13 @@ def main(config) -> int:
     ## predict using recursive approach)-.
     df_vpsc_main_1,_,df_pred_main_1,_=pred_obj.pred_recursive_main(1)
     ########## ppr_obj.plot_res(df_vpsc_main_1,df_pred_main_1,cfg_obj.ds_file,sf_obj.dir_save) # PLOT-PLOT-.
-    ppr_obj.plot_res_1(df_vpsc_main_1,df_pred_main_1,cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
+    ########## ppr_obj.plot_res_1(df_vpsc_main_1,df_pred_main_1,cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
     
     ## 7- save PandasDF with VPSC/True, NON-RECURSIVE and RECURSIVE predictions in files to
     ##    plot using MTEX-.
     ## print(len(df_vpsc_main),len(df_rec_main),len(df_pred_main)); input(55)
     ## print(df_vpsc_main,df_rec_main,df_pred_main), input(55)
-    wcfm(df_vpsc_main,df_rec_main,df_pred_main,cfg_obj.dir_save,str.split(cfg_obj.ds_file,'.')[0])
+    ########## wcfm(df_vpsc_main,df_rec_main,df_pred_main,cfg_obj.dir_save,str.split(cfg_obj.ds_file,'.')[0]) # @0-.
     
     ## < ================= BLOCK II- Plots using only one VPSC/IRUN  ================= >-.
     ## 8- PLOT ==> Plot -- $C^{VPSC/true,NON_REC_PRED,REC-PRED}$ vs. $\carepsilon$-- -.
@@ -105,11 +105,11 @@ def main(config) -> int:
     ## 9-  PLOT ==> $\varepsilon,\phi^{VPSC/true}$ vs. $\bar{\varepsilon}$ and
     ##              $\varepsilon,\phi^{VPSC/true}$ vs. $\varepsilon,\phi^{NON_REC_PRED,REC_PRED$
     ########## ppr_obj.plot_phi_phi(cfg_obj.ds_file,sf_obj.dir_save) # PLOT-PLOT-.
-    ppr_obj.plot_eps_phi(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
+    ########## ppr_obj.plot_eps_phi(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
     
     ## 10- PLOT ==> CORRELATION -- $C^{VPSC/true} vs. C^{NON_REC_PRED,REC-PRED}$-- -.
     ########## ppr_obj.plot_C_VPSC_vs_C_pred(cfg_obj.ds_file,sf_obj.dir_save) # PLOT-PLOT-.
-    ppr_obj.plot_C_VPSC_vs_C_pred_1(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
+    ########## ppr_obj.plot_C_VPSC_vs_C_pred_1(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
     
     ## < ============== BLOCK III- Plots using more than one VPSC/IRUN  ============== >-.
     ## BLOCK III- PLOT_RESULTS_WITH_STATISTICS == prws == (plots with  more than one case,
@@ -120,8 +120,8 @@ def main(config) -> int:
     ## 12- PLOT ==> CORRELATION -- $\varepsilon,eta^{VPSC/true}$ vs.
     ##                             $\varepsilon,eta^{NON_REC_PRED,REC_PRED$
     ########## prws_obj.corr_anisitropyc_coefi(cfg_obj.ds_file,sf_obj.dir_save) # PLOT-PLOT-.
-    prws_obj.corr_anisitropyc_coefi(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
-
+    ########## prws_obj.corr_anisitropyc_coefi(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
+    
     ## 13- PLOT ==> abs($\Delta C_{ij})=abs($C^{VPSC/true,NON_REC_PRED,REC-PRED}_{ij}$) vs.
     ##              $\varepsilon$-- -.
     ########## prws_obj.plot_diff_C_comp(cfg_obj.ds_file,sf_obj.dir_save) # PLOT-PLOT-.
@@ -130,14 +130,15 @@ def main(config) -> int:
     
     ## 14- PLOT ==> abs(${\varepsilon,\eta})= abs({\varepsilon,\eta}^{VPSC/true})-
     ##              {\varepsilon,\eta}^{NON_REC_PRED,REC-PRED})$ vs. $\varepsilon$-- -.
-    ########## prws_obj.plot_diff_eps_eta(cfg_obj.ds_file,sf_obj.dir_save) # PLOT-PLOT-.
-    prws_obj.plot_diff_eps_phi(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
+    ## prws_obj.plot_diff_eps_eta(cfg_obj.ds_file,sf_obj.dir_save) # PLOT-PLOT-.
+    ########## prws_obj.plot_diff_eps_phi(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
 
     ## 15- PLOT ==> $d_{euclidena}($C^{VPSC/true}_{ij},C^{NON_REC_PRED,REC-PRED}_{ij}) vs.
     ##              $\varepsilon$-- -.
     ########## prws_obj.plot_C_dist(cfg_obj.ds_file,sf_obj.dir_save) # PLOT-PLOT-.
-    prws_obj.plot_C_dist(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
-    
+    ########## prws_obj.plot_C_dist(cfg_obj.ds_file,sf_obj.dir_save) # @1 -- PLOT-PLOT-.
+
+    '''
     ## 16- For Bayesian predictions-.
     df_vpsc_main,df_rec_main,df_pred_main,iruned=pred_obj.pred_recursive_main(0)
     unc_obj=up(df_vpsc_main,df_rec_main,df_pred_main,iruned,cfg_obj.dim,idx_o) # PLOT-PLOT-.
@@ -145,6 +146,7 @@ def main(config) -> int:
     ##########                               cfg_obj.quart)  # PLOT-PLOT-.
     unc_obj.plot_with_uncertainty_1(cfg_obj.ds_file,sf_obj.dir_save,
                                     cfg_obj.quart)  # @1 -- PLOT-PLOT-.
+    '''
     
     return 0
 ## ======================================================================= END79

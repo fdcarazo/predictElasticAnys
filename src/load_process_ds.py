@@ -41,33 +41,14 @@ class Dataset():
     def set_cols(self,dim:str) -> list:
         cols=list()
         if dim=='2D' or dim=='2d':
-            '''
-            cols=['irun','vgrad11', 'vgrad22', 'vgrad12', 'vgrad21','c11_in',
-                  'c22_in', 'c33_in', 'c44_in', 'c55_in', 'c66_in', 'c56_in',
-                  'c46_in', 'c36_in', 'c26_in', 'c16_in', 'c45_in', 'c35_in', 
-                  'c25_in', 'c15_in', 'c34_in', 'c24_in', 'c14_in', 'c23_in',
-                  'c13_in', 'c12_in', 'c11_out', 'c22_out', 'c33_out', 'c44_out',
-                  'c55_out', 'c66_out', 'c56_out', 'c46_out', 'c36_out', 'c26_out', 
-                  'c16_out', 'c45_out', 'c35_out', 'c25_out', 'c15_out', 'c34_out', 
-                  'c24_out', 'c14_out', 'c23_out', 'c13_out', 'c12_out','strain']
-            '''
-            '''
-            cols=['irun','vgrad11', 'vgrad22', 'vgrad12', 'vgrad21','c11_in',
-                  'c22_in', 'c33_in', 'c44_in', 'c55_in', 'c66_in',
-                  'c26_in', 'c16_in', 'c45_in', 'c23_in',
-                  'c13_in', 'c12_in', 'c11_out', 'c22_out', 'c33_out', 'c44_out',
-                  'c55_out', 'c66_out', 'c56_out', 'c46_out', 'c36_out', 'c26_out',
-                  'c16_out', 'c45_out', 'c35_out', 'c25_out', 'c15_out', 'c34_out',
-                  'c24_out', 'c14_out', 'c23_out', 'c13_out', 'c12_out','strain']
-            '''
-            cols=['irun','vgrad11', 'vgrad22', 'vgrad12', 'vgrad21','c11_in',
-                  'c22_in', 'c33_in', 'c44_in', 'c55_in', 'c66_in', 'c56_in',
-                  'c46_in', 'c36_in', 'c26_in', 'c16_in', 'c45_in', 'c35_in', 
-                  'c25_in', 'c15_in', 'c34_in', 'c24_in', 'c14_in', 'c23_in',
-                  'c13_in', 'c12_in', 'c11_out', 'c22_out', 'c33_out', 'c44_out',
-                  'c55_out', 'c66_out', 'c56_out', 'c46_out', 'c36_out', 'c26_out', 
-                  'c16_out', 'c45_out', 'c35_out', 'c25_out', 'c15_out', 'c34_out', 
-                  'c24_out', 'c14_out', 'c23_out', 'c13_out', 'c12_out','strain']
+            cols=['irun','vgrad11','vgrad22','vgrad12','vgrad21','c11_in',
+                  'c22_in','c33_in','c44_in','c55_in','c66_in','c56_in',
+                  'c46_in','c36_in','c26_in','c16_in','c45_in','c35_in', 
+                  'c25_in','c15_in','c34_in','c24_in','c14_in','c23_in',
+                  'c13_in','c12_in','c11_out','c22_out','c33_out','c44_out',
+                  'c55_out','c66_out','c56_out','c46_out','c36_out','c26_out', 
+                  'c16_out','c45_out','c35_out','c25_out','c15_out','c34_out', 
+                  'c24_out','c14_out','c23_out','c13_out','c12_out','strain']
         elif dim=='3D' or dim=='3d':
             cols=['irun','vgrad11', 'vgrad22', 'vgrad33', 'vgrad23', 'vgrad13',
                   'vgrad12', 'vgrad32', 'vgrad31', 'vgrad21', 'c11_in', 'c22_in',

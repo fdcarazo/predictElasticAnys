@@ -1,14 +1,16 @@
 gen_options:
   save: True
-  dir_save: '/Users/Fernando/temp/'
+  dir_save: '~/temp/figs/'
   dim: '2D'  # by default the BC is applied in plane (1-2) == (x-y)-.
-  nirun: 2 # number of cases VPSC/IRUNs, used in statisticalPlots (i.e. src/plot_res_statistical.py)-.
+  nirun: 100 # number of cases VPSC/IRUNs, used in statisticalPlots (i.e. src/plot_res_statistical.py)-.
   irun: 'random' # 'random' or int. How select the VPSC's/IRUN's cases from dataset-.
   nnn: 10 # number of NN to be used in uncertainty determination-.
-  quart: 2 # uncertaninty interval of 95%-.
+  quart: 10 # uncertaninty interval of 95%-.
   
 dataset:
-  path: '/Users/Fernando/posDocMontpellier2022/AyV/ds/'
+##  path: '/Users/Fernando/posDocMontpellier2022/AyV/ds/1-SZModels/'
+  path: '/home/fcarazo/francia/posDocMontpellier2022/AyV/ds/'
+##  path: '/Users/Fernando/posDocMontpellier2022/AyV/ds/'
 ##  name: 'db3-CFMORn1-90deg-resc.csv'
 ##  name: 'db3-CFMORn1-45deg-resc.csv'
 ##  name: 'db3-PS-resc.csv'
@@ -18,18 +20,32 @@ dataset:
 ##  name: 'db3-SZModel1-str100-130.csv'
 ##  name: db3-SS_0_10.csv
 ##  name: 'db3-SZModel1-str130-160.csv'
+##  name: 'db3-SZModel1A10D30-str100-130.csv'
+##  name: 'db3-SZModel1A10D30-str130-100.csv'
+##  name: 'db3-SZModel1A10D45-str160-200.csv'
+##  name: 'db3-SZModel1A30D30-str70-100.csv'
+##  name: 'db3-SZModel1A30D30-str130-160.csv'
+##  name: 'db3-SZModel1A30D45-str160-200.csv'
+
  
 model:
 ##  path: '/Users/Fernando/out_from_cluster/mlp/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_123041/'
-##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_140533/'
+##  path: '/home/fcarazo/francia/out_from_cluster/MLP-_-21032024_140533/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_165628/'
 ##   path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_155009/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-_-21032024_171915/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-_-25032024_094416/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-_-25032024_111508/'
-##    path: '/Users/Fernando/out_from_cluster/MLP-19032024_181619/'
-  path: '/Users/Fernando/out_from_cluster/MLP-12032024_092116/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-29032024_104524/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-19032024_181619/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-12032024_092116/'
+  path: '/home/fcarazo/francia/out_from_cluster/MLP-12032024_092116/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-28032024_114649/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-29032024_135953/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-28032024_115137/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-28032024_115902/'
+##  path: '/Users/Fernando/out_from_cluster/MLP-_-28032024_120053/' # ok-.
 ##  path: '/Users/Fernando/out_from_cluster/resDL_35_SS/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-12032024_161520/'
 ##  path: '/Users/Fernando/out_from_cluster/MLP-12032024_170406/'
@@ -44,7 +60,7 @@ model:
 ##  name: 'GradientBoostingRegressor_MLP_2_ckpt.pth'
   name: 'dlModelWithoutHyperOpt_torch.pt'
 ##########  name: 'dlModelWithoutHyperOpt.pt' # @1
-
+##  name: 'dlModelWithoutHyperOpt_torch.pt'
 scaler:
   feat: 'featScaler.pkl'
   targ: 'targScaler.pkl'

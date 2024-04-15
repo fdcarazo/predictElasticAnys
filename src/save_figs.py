@@ -18,7 +18,7 @@ from os.path import exists as ope
 from os import makedirs as om
 import sys
 
-sys.path.append('/Users/Fernando/scratch/elasAnys/2testModels/')
+## sys.path.append('/Users/Fernando/scratch/elasAnys/2testModels/')
 from utils.gen_tools import get_args  as ga
 from utils import gen_tools as gt
 
