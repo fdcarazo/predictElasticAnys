@@ -26,7 +26,6 @@ def calcula_elas_anys_coef(c11,c13,c22,c33,c44,c55,c66):
     PAGES 511-520, JANUARY10, 1986. A SIMPLE METHODFOR INVERTING THE AZIMUTHAL
     ANISOTROPY OF SURFACE WAVES-.
     '''
-    ## eta=(1./8.*(c11+c33)- 1./4.*c13+ 1./2.*c55)/(1./2.*(c44+c66))
     phi=(c22)/(3./8.*(c11+c33)+1./4.*c13+1./2.*c55)
     ## epsilon=(1./2.* (c12+c23))/(3./8.*(c11+c33)+1./4.*c13+1./2.*c55-(c44+c66))
     xi=(1./8.*(c11+c33)- 1./4.*c13+ 1./2.*c55)/(1./2.*(c44+c66))

@@ -42,10 +42,11 @@ class PlotResWithStatistics(PlotPredRes):
         Prints the person's name and age.
     '''
     def __init__(self,df,niruns:int,dim:str,df_true:list,df_pred_rec:list,df_pred:list,iruned:list,
-                 feat_var:list,target_vars:list,idx_o:list):
-        super().__init__(dim,df_true,df_pred_rec,df_pred,iruned,feat_var,target_vars,idx_o)
+                 feat_var:list,target_vars:list,idx_o:list,emax:float,saveeps=bool):
+        super().__init__(dim,df_true,df_pred_rec,df_pred,iruned,feat_var,target_vars,idx_o,emax,saveeps)
         self.df=df # original df-.
         self.niruns=niruns # numnbers of VPSC/IRUNS simulations to be used)-,
+        self.emax = emax
 
     def corr_anisitropyc_coefi(self,ds_name:str,dir_save:str):
         '''
@@ -340,6 +341,11 @@ class PlotResWithStatistics(PlotPredRes):
             delta_cij_pred_strain=pd.concat([delta_cij_pred_strain,delta_cij_pred])
             delta_cij_pred_rec_strain=pd.concat([delta_cij_pred_rec_strain,delta_cij_pred_rec])
 
+        dftmp = pd.concat([self.df_pred[idf]['c11_out'], delta_cij_pred['c11_out'],
+                        delta_cij_pred_rec['c11_out'],delta_cij_pred['strain']], 
+                        axis=1, keys=['c11', 'dc11_norec','dc11_rec','strain'])
+        dftmp.to_csv("dftmp.csv")
+        
         # 2Flat MultiIndex columns-.
         result_pred=delta_cij_pred_strain.groupby('strain').agg([np.mean, np.std]).reset_index()
         result_pred.columns=result_pred.columns.map('_'.join) # 2Flat MultiIndex columns-.
@@ -350,7 +356,7 @@ class PlotResWithStatistics(PlotPredRes):
         dict_plt_rcParams,gs,fig,plette=self.set_plot_options_all_C(self.dim)
         plt.rcParams.update(dict_plt_rcParams)
         nr,nc=6,6
-        fig,axes=plt.subplots(nrows=nr,ncols=nc,figsize=(20,10))
+        fig,axes=plt.subplots(nrows=nr,ncols=nc,figsize=(15,8))
         idx=0
         for i in range(nr):
             for j in range(nc):
@@ -364,10 +370,10 @@ class PlotResWithStatistics(PlotPredRes):
                                 result_pred[f'{col}_mean'],
                                 result_pred[f'{col}_std'],
                                 fmt='o',
-                                label=r'$|\Delta C^{NO-REC}_{ij}|$',
-                                marker='s',
+                    #            label=r'$|\Delta C^{NO-REC}_{ij}|$',
+                                marker='.',
                                 mfc='red',
-                                mec='green',
+                                mec='red',
                                 ms=4,
                                 mew=1
                                 )
@@ -376,10 +382,10 @@ class PlotResWithStatistics(PlotPredRes):
                                 result_pred_rec[f'{col}_mean'],
                                 result_pred_rec[f'{col}_std'],
                                 fmt='p',
-                                label=r'$|\Delta C^{REC}_{ij}|$',
+                               #label=r'$|\Delta C^{REC}_{ij}|$',
                                 marker='p',
                                 mfc='blue',
-                                mec='cyan',
+                                mec='blue',
                                 ms=4,
                                 mew=1
                                 )
@@ -391,20 +397,35 @@ class PlotResWithStatistics(PlotPredRes):
                     sns.pointplot(x=x, y=y_val_mean, errorbar=y_val_std, capsize=.4, color='.5', ax=ax)
                     '''
             
+                    #ax.set_yscale('log')
+
                     ## plt.legend(loc=3)
                     plt.grid()
                     plt.xlabel(r'$\bar{\varepsilon}$')
                     
                     col=str(col).replace('_out','')
                     plt.ylabel(r'$\Delta$'+
-                               '{0}'.format(col)
+                               '{0}'.format(col), fontsize=10
                                )
                     plt.tight_layout()
                     
+                    #plt.xlim([0.0,result_pred['strain_'].max()])
+                    xmax=self.emax
+                    plt.xlim([0.0,xmax])
+                    
+                    if (i==j):
+                      axes[i][j].set_ylim([0.0,50.0])
+                    # if (i==0 and j==2):
+                    #   axes[i][j].set_ylim([0.0,150.0])
+
                     ticks, labels=plt.xticks()
                     plt.xticks(ticks[::1], labels[::1])
-                    plt.xlim([0.0,result_pred['strain_'].max()])
-                    
+
+                    axes[i][j].tick_params(labelsize=10)
+                
+                    axes[i][j].xaxis.grid(True, which='major')
+                    axes[i][j].yaxis.grid(True, which='major')
+
                     idx+=1
                         
                 else:
@@ -430,9 +451,13 @@ class PlotResWithStatistics(PlotPredRes):
                  horizontalalignment='right',verticalalignment='top',
                  backgroundcolor='1.0')
         
+        plt.subplots_adjust(wspace=0.4,hspace=0.3);
+
         plt.show()
-        fig.savefig(os.path.join(dir_save,'DeltaCijkl.png'),format='png',dpi=100)
+        fig.savefig(os.path.join(dir_save,'DeltaCijkl.png'),format='png',dpi=250,bbox_inches='tight')
         
+
+
     def plot_diff_eps_phi(self,ds_name:str,dir_save:str):
         '''
         method to calculate the mean and standard deviation of the difference
@@ -533,21 +558,21 @@ class PlotResWithStatistics(PlotPredRes):
         '''
         
         plt.rcParams.update({'font.size': 12})
-        fig,ax=plt.subplots(1,2, figsize=(12,6)) #, sharey='row')
+        fig,ax=plt.subplots(2,1, figsize=(4,4)) #, sharey='row')
         ax=ax.flatten()
         
-        ## plot $\phi$ coefficient-.
-        ax[0].errorbar(result_phi_pred['strain_'],
-                       result_phi_pred['deltaPhi_mean'],
-                       result_phi_pred['deltaPhi_std'],
-                       fmt='o',
-                       label=r'$|\phi^{{VPSC}}-\phi^{{PRED-NON-REC}}|$',
-                       marker='s',
-                       mfc='red',
-                       mec='green',
-                       ms=5,
-                       mew=1
-                       )
+        # ## plot $\phi$ coefficient-.
+        # ax[0].errorbar(result_phi_pred['strain_'],
+        #                result_phi_pred['deltaPhi_mean'],
+        #                result_phi_pred['deltaPhi_std'],
+        #                fmt='o',
+        #                label=r'$|\phi^{{VPSC}}-\phi^{{PRED-NON-REC}}|$',
+        #                marker='s',
+        #                mfc='red',
+        #                mec='green',
+        #                ms=5,
+        #                mew=1
+        #                )
         ax[0].errorbar(result_phi_pred_rec['strain_'],
                        result_phi_pred_rec['deltaPhi_mean'],
                        result_phi_pred_rec['deltaPhi_std'],
@@ -555,22 +580,22 @@ class PlotResWithStatistics(PlotPredRes):
                        label=r'$|\phi^{{VPSC}}-\phi^{{PRED-REC}}|$',
                        marker='p',
                        mfc='blue',
-                       mec='magenta',
+                       mec='blue',
                        ms=5,
                        mew=1
                        )
         ## plot $\phi$ coefficient-.
-        ax[1].errorbar(result_eps_pred['strain_'],
-                       result_eps_pred['deltaEps_mean'],
-                       result_eps_pred['deltaEps_std'],
-                       fmt='o',
-                       label=r'$|\varepsilon^{{VPSC}}-\varepsilon^{{PRED-NON-REC}}|$',
-                       marker='s',
-                       mfc='red',
-                       mec='green',
-                       ms=5,
-                       mew=1
-                       )
+        # ax[1].errorbar(result_eps_pred['strain_'],
+        #                result_eps_pred['deltaEps_mean'],
+        #                result_eps_pred['deltaEps_std'],
+        #                fmt='o',
+        #                label=r'$|\varepsilon^{{VPSC}}-\varepsilon^{{PRED-NON-REC}}|$',
+        #                marker='s',
+        #                mfc='red',
+        #                mec='green',
+        #                ms=5,
+        #                mew=1
+        #                )
         ax[1].errorbar(result_eps_pred_rec['strain_'],
                        result_eps_pred_rec['deltaEps_mean'],
                        result_eps_pred_rec['deltaEps_std'],
@@ -578,7 +603,7 @@ class PlotResWithStatistics(PlotPredRes):
                        label=r'$|\varepsilon^{{VPSC}}-\varepsilon^{{PRED-REC}}|$',
                        marker='s',
                        mfc='blue',
-                       mec='magenta',
+                       mec='blue',
                        ms=5,
                        mew=1
                        )
@@ -604,15 +629,22 @@ class PlotResWithStatistics(PlotPredRes):
         
         ax[0].legend(loc='upper left'), ax[1].legend(loc='upper left')
         
-        ax[0].set_xlabel(r'$\bar{\varepsilon}$')
-        ax[1].set_xlabel(r'$\bar{\varepsilon}$')
-        ax[0].set_ylabel(r'$\phi$')
-        ax[1].set_ylabel(r'$\varepsilon$')
+        ax[0].set_xlabel(r'$\bar{\varepsilon}$', fontsize=10)
+        ax[1].set_xlabel(r'$\bar{\varepsilon}$', fontsize=10)
+        ax[0].set_ylabel(r'$\Delta \phi$', fontsize=10)
+        ax[1].set_ylabel(r'$\Delta \xi$', fontsize=10)
         
         ## plt.ylabel('{0}'.format(target_var_to_plot))
         ## plt.title('IRUN {0}'.format(iruned))
+
+        xmax=self.emax
+        ax[0].set_xlim([0.0,xmax])
+        ax[1].set_xlim([0.0,xmax])
+        ax[0].set_ylim([0.0,0.5])
+        ax[1].set_ylim([0.0,0.5])
+
         plt.show()
-        fig.savefig(os.path.join(dir_save,'Phi-Epsilon.png'),format='png',dpi=100)
+        fig.savefig(os.path.join(dir_save,'DeltaPhi-DeltaXi.png'),format='png',dpi=250,bbox_inches='tight')
 
     def plot_C_dist(self,ds_name:str,dir_save:str):
         '''

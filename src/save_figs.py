@@ -37,8 +37,9 @@ class SaveFigs():
         info(additional=""):
         Prints the person's name and age.
     '''
-    def __init__(self,save:bool,ds_file:str,dir_save:str,root:str):
+    def __init__(self,save:bool,saveeps:bool,ds_file:str,dir_save:str,root:str):
         self.save=save
+        self.saveeps=saveeps
         self.ds_file=ds_file
         self.dir_save=dir_save
         self.root=root

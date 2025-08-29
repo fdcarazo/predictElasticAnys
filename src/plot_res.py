@@ -16,6 +16,9 @@
 ## Import the required packages/libraries/modules-.
 ## 1-1- GENERAL MODULES -.
 import pandas as pd
+import matplotlib as mpl
+import matplotlib.ticker as tck
+
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import seaborn as sns
@@ -26,6 +29,10 @@ from sklearn.metrics import mean_squared_error,r2_score
 
 from utils.elastic_calcs import calcula_elas_anys_coef as ceac
 from utils.gen_tools import adjust_line as al, eps_eta_rmse as eermse
+
+mpl.rcParams['mathtext.fontset'] = 'stix'
+mpl.rcParams['font.family'] = 'STIXGeneral'
+
 
 class PlotPredRes():
     '''
@@ -41,7 +48,7 @@ class PlotPredRes():
         Prints the person's name and age.
     '''
     def __init__(self,dim:str,df_true:list,df_pred_rec:list,df_pred:list,iruned:list,
-                 feat_var:list,target_vars:list,idx_o:list):
+                 feat_var:list,target_vars:list,idx_o:list,emax:float,saveeps:bool):
         self.dim=dim # problem dimension ('2d' or '3d')-,
         self.df_true=df_true # list with Pandas.DataFrames, len(df_true)=cfg.nirun-.
         self.df_pred_rec=df_pred_rec # list with Pandas.DataFrames RECURSIVE, len(df_pred)=cfg.nirun-.
@@ -56,6 +63,8 @@ class PlotPredRes():
         self.i_run=np.random.randint(0,len(self.df_true))
         self.df=[self.df_true[self.i_run]]
         ## print(self.i_run,df,sep='\n'), input(0)
+        self.emax = emax
+        self.saveeps = saveeps
         
     def plot_C_VPSC_pred_vs_def(self,ds_name:str,dir_save:str):
         ''' plot $C^{VPSC,pred}_{ijkl}$ vs. $\varepsilon$ '''
@@ -99,6 +108,7 @@ class PlotPredRes():
                 ticks,labels=plt.xticks()
                 plt.xticks(ticks[::1], labels[::1])
                 plt.xlim([0.0,x.max()])
+
                 ## plt.ylim([0.0,280.0])
                 ## plt.suptitle(f'Elastic anisotropy tensor componentes '+
                 ##              f'predicted using RECURSIVE approach '
@@ -143,13 +153,42 @@ class PlotPredRes():
         
     def plot_C_VPSC_pred_vs_def_1(self,ds_name:str,dir_save:str):
         ''' plot $C^{VPSC,pred}_{ijkl}$ vs. $\varepsilon$ '''
-        
+      
+        ## Some contraints on axes limits and tick intervals
+        axcomp = [[{} for i in range(6)] for j in range(6)]
+
+        #axcomp[0][0] = {"lims":[180,300], "dY":40, "dYm":20}        # C11 --> diag values
+        axcomp[0][0] = {"lims":[180,320], "dY":40, "dYm":20}        # C11 --> diag values
+        axcomp[1][1] = axcomp[0][0]                                 # C22
+        axcomp[2][2] = {"lims":[225,235], "dY":5.0, "dYm":2.5}      # C33
+        axcomp[3][3] = {"lims":[60.0,90.0], "dY":10.0, "dYm":5.0}   # C44
+        axcomp[4][4] = axcomp[3][3]                                 # C55
+        axcomp[5][5] = axcomp[3][3]                                 # C66
+
+        axcomp[0][1] = axcomp[3][3]                                 # C12 --> off-diag values
+        axcomp[0][2] = {"lims":[70,80], "dY":5.0, "dYm":1.0}        # C13
+        axcomp[0][3] = {"lims":[-0.75,0.75], "dY":.75, "dYm":.25}   # C14
+        axcomp[0][4] = {"lims":[-1.0,1.0], "dY":.5, "dYm":.2}       # C15
+        axcomp[0][5] = {"lims":[-35.0,35.0], "dY":35., "dYm":5.}    # C16
+        axcomp[1][2] = axcomp[0][2]                                 # C23
+        axcomp[1][3] = axcomp[0][3]                                 # C24
+        axcomp[1][4] = axcomp[0][3]                                 # C25
+        axcomp[1][5] = axcomp[0][5]                                 # C26
+        axcomp[2][3] = axcomp[0][3]                                 # C34
+        axcomp[2][4] = axcomp[0][4]                                 # C35
+        axcomp[2][5] = {"lims":[-5.0,5.0], "dY":5., "dYm":1.}       # C36
+        axcomp[3][4] = {"lims":[-7.5,7.5], "dY":7.5, "dYm":2.5}     # C45
+        axcomp[3][5] = axcomp[0][3]                                 # C46 
+        axcomp[4][5] = axcomp[0][3]                                 # C56 
+
         for ig, df_model in enumerate(self.df):
             ## set seome matplotlib params
             dict_plt_rcParams,gs,fig,plette=self.set_plot_options_all_C(self.dim)
             plt.rcParams.update(dict_plt_rcParams)
             nr,nc=6,6
-            fig,axes=plt.subplots(nrows=nr,ncols=nc,figsize=(20,10))
+            plt.close('all')
+            fig,axes=plt.subplots(nrows=nr,ncols=nc,figsize=(15,8))
+            #fig.subplots_adjust(bottom=.08, right=0.94, left=0.07,top=.98, wspace=0.0,hspace=0.2 );         
             idx=0
             for i in range(nr):
                 for j in range(nc):
@@ -165,31 +204,41 @@ class PlotPredRes():
                         ## y_pred=self.df_pred[ig][str(var_to_plot)+'_out'] # @1-.
                         y_pred=self.df_pred[self.i_run][str(var)+'_out'] # NON_RECURSIVE-.
                         
-                        plt.scatter(x=x,y=y_true,s=10,facecolors='none',
-                                    edgecolor='k',marker='^',label='VPSC/true'
+                        plt.plot(x,y_true, linewidth=2,
+                                    color='k',label='VPSC/true'
                                     # alpha=0.1, c='blue',
                                     )
                         
                         plt.scatter(x=x,y=y_pred_rec,s=10,facecolors='none',
-                                    edgecolors='r',marker='o',label='recursive_prediction'
+                                    edgecolors='b',marker='o',label='recursive_prediction'
                                     # alpha=0.1,c='blue',
                                     )
                         plt.scatter(x=x,y=y_pred,s=10,facecolor='None',
-                                    edgecolor='b',marker='*',label='non_recursive_prediction'
+                                    edgecolor='r',marker='.',label='non_recursive_prediction'
                                     # alpha=0.1, c='blue',
                                     )
                         
                         ## plt.legend(loc=3)
-                        plt.grid()
                         ## plt.legend(loc=2)
                         plt.tight_layout()
                         plt.xlabel(r'$\bar{\varepsilon}$')
-                        plt.ylabel('{0}'.format(var))
+                        plt.ylabel('{0}'.format(var), fontsize=10)
                         
+                        xmax = self.emax;
+                        plt.xlim([0.0,xmax])
+                        
+                        plt.ylim(axcomp[i][j]["lims"])
+
                         ticks,labels=plt.xticks()
                         plt.xticks(ticks[::1], labels[::1])
-                        plt.xlim([0.0,x.max()])
-                        
+
+                        axes[i][j].tick_params(labelsize=10)
+                        # axes[i][j].tick_params(axis='x', which='minor', bottom=True)
+
+                        #plt.grid()
+                        axes[i][j].xaxis.grid(True, which='major')
+                        axes[i][j].yaxis.grid(True, which='major')
+
                         ## plt.ylim([0.0,280.0])
                         ## plt.suptitle(f'Elastic anisotropy tensor componentes '+
                         ##              f'predicted using RECURSIVE approach '
@@ -202,7 +251,7 @@ class PlotPredRes():
                     else:
                         axes[i][j].remove()
                 
-            fig.legend(*ax.get_legend_handles_labels(),loc='lower center',ncol=4)
+            fig.legend(*ax.get_legend_handles_labels(),loc='lower center',ncol=4, fontsize=10)
             ## plt.legend(lines, labels, loc = 'lower center', bbox_to_anchor = (0, -0.1, 1, 1),
             ##            bbox_transform = plt.gcf().transFigure)
             
@@ -215,20 +264,27 @@ class PlotPredRes():
             
             label= r'$C_{{ij}}^{{VPSC/true}}=f(\bar{\varepsilon})$, and '+\
                 r'$C_{{ij}}^{{predicted_{{RECURSIVE}}}}=f(\bar{{\varepsilon}})$'\
-                ' for {0} and IRUN ={1}'.format(str.split(ds_name,'.')[0],self.i_run,y=0.1)
-                ## ' for {0} and IRUN ={1}'.format(str.split(ds_name,'.')[0],self.iruned[ig],y=0.1)  # @1-.
+                  ' for {0} and IRUN ={1}'.format(str.split(ds_name,'.')[0],self.iruned[ig],y=0.1)  # @1-.
+                ##' for {0} and IRUN ={1}'.format(str.split(ds_name,'.')[0],self.i_run,y=0.1)
             
             fig.text(0.8,0.1,label,color='r',fontsize=12,
                      horizontalalignment='right',verticalalignment='top',
                      backgroundcolor='1.0'
                      )
             
+            plt.subplots_adjust(wspace=0.4,hspace=0.3);
+
             plt.show()
             fig.savefig(os.path.join(dir_save,'Cijkl_VPSC-Pred_Strain_'+
                                      str(self.i_run)+'.png'),
                         ##str(self.iruned[ig])+'.png'),  # @1-.
                         format='png', dpi=100) # -.
-            
+            if self.saveeps==True:
+              fig.savefig(os.path.join(dir_save,'Cijkl_VPSC-Pred_Strain_'+
+                                      str(self.i_run)+'.eps'),
+                          ##str(self.iruned[ig])+'.png'),  # @1-.
+                          format='eps', dpi=200) # -.
+              
             ## str(iruned[ig])+'.png'), format='png', dpi=100) # -.
             ## https://stackoverflow.com/questions/14379753/what-does-mean-in-python-function-definitions
             ## print(gt.calcula_elas_anys_coef.__annotations__['return'])
@@ -508,8 +564,14 @@ class PlotPredRes():
                                      str(self.i_run)+'.png'),format='png',
                         ## str(self.iruned[ig])+'.png'),format='png',  # @1-.
                         dpi=100) # -.
-    
-    def plot_eps_phi(self,ds_name:str,dir_save:str):
+            if self.saveeps==True:
+              fig.savefig(os.path.join(dir_save,'C_VPSC_true-Pred_REC_NONREC'+
+                                        str(self.i_run)+'.eps'),format='eps',
+                        dpi=200) # -.
+
+
+
+    def plot_eps_phi_1(self,ds_name:str,dir_save:str):
         ''' plot $\varepsilon$ and $\phi$ vs. $\bar{\varepsilon}$ and 
             ($C^{VPSC-true}_{ij}$ vs. $C^{pred-REC_NON-REC}_{ij}$-.
         '''
@@ -522,9 +584,12 @@ class PlotPredRes():
             locals()['eps_teo_{0}'.format(self.i_run)],\
                 locals()['phi_teo_{0}'.format(self.i_run)]=ceac(
                     dfm.loc[:,'c11'f'{case}'],
-                    dfm.loc[:,'c13'f'{case}'],dfm.loc[:,'c22'f'{case}'],
-                    dfm.loc[:,'c33'f'{case}'],dfm.loc[:,'c44'f'{case}'],
-                    dfm.loc[:,'c55'f'{case}'],dfm.loc[:,'c66'f'{case}']
+                    dfm.loc[:,'c13'f'{case}'],
+                    dfm.loc[:,'c22'f'{case}'],
+                    dfm.loc[:,'c33'f'{case}'],
+                    dfm.loc[:,'c44'f'{case}'],
+                    dfm.loc[:,'c55'f'{case}'],
+                    dfm.loc[:,'c66'f'{case}']
                 )
             locals()['eps_pred_{0}'.format(self.i_run)],\
                 locals()['phi_pred_{0}'.format(self.i_run)]=ceac(
@@ -560,142 +625,285 @@ class PlotPredRes():
             m_phi_pred,c_phi_pred,pearR_pred_phi=al(phi_teo,phi_pred)
             m_phi_pred_rec,c_phi_pred_rec,pearR_pred_rec_phi=al(phi_teo,phi_pred_rec)
 
-            fig,axs=plt.subplots(2,2,figsize=(18, 9),sharey='row')
+            fig,axs=plt.subplots(2,1,figsize=(5, 5),sharey='row')
+            ## axs=np.ravel(axs) ##     ax=ax.flatten() ## ax=ax.flatten()
+            ax=axs.flatten() ## ax= ax.flatten()
+            plt.rcParams.update({'font.size': 12})
+
+            xmax = self.emax;
+
+            ## plot PHI vs. STRAIN
+            label=r"$\phi^{{{0}}}_{{{1}}}$".format('VPSC',self.i_run)
+            ax[0].plot(dfm['strain'],phi_teo,linewidth=2,
+                          color='black',label=label)
+            label=r"$\phi^{{{0}}}_{{{1}}}$".format('non-rec',self.i_run)
+            ax[0].scatter(x=dfm['strain'],y=phi_pred,s=10,facecolors='red',
+                          alpha= 1.0,marker='.',
+                          label=label)
+            label=r"$\phi^{{{0}}}_{{{1}}}$".format('rec',self.i_run)
+            ax[0].scatter(x=dfm['strain'],y=phi_pred_rec,s=20,facecolors='none',
+                          edgecolors='b',alpha= 1.0,marker='o',
+                          label=label)
+
+            ax[0].grid()
+            ax[0].legend(#loc=2,
+                    labelspacing=0.1,        # Vertical space between entries (default is 0.5)
+                    handletextpad=0.2,       # Space between handle and label (default is 0.8)
+                    handlelength=0.5,        # Length of the legend line
+                    borderaxespad=0.2        # Padding between legend and axes
+                )
+            ## ax.set_title(r'$\varepsilon$')
+            ax[0].set_xlabel(r'$\bar\varepsilon$',fontsize=12)
+            ax[0].set_ylabel(r'$\phi$',fontsize=12)
+            ax[0].set_ylim(0.7,1.3)
+
+            ax[0].set_xlim([0.0,xmax])
+
+
+
+            ## plot XI VS. STRAIN
+            label=r"$\xi^{{{0}}}_{{{1}}}$".format('VPSC',self.i_run)
+            ax[1].plot(dfm['strain'],eps_teo,linewidth=2,
+                          color='black',label=label)
+            label=r"$\varepsilon^{{{0}}}_{{{1}}}$".format('non-rec',self.i_run)
+            ax[1].scatter(x=dfm['strain'],y=eps_pred,s=10,facecolors='red',
+                          alpha= 1.0,marker='.',
+                          label=label)
+            label=r"$\xi^{{{0}}}_{{{1}}}$".format('rec',self.i_run)
+            ax[1].scatter(x=dfm['strain'],y=eps_pred_rec,s=20,facecolors='none',
+                          edgecolors='blue',alpha= 1.0,marker='o',
+                          label=label)
+
+            ax[1].grid()
+            ax[1].legend(#loc=2,
+                    labelspacing=0.1,        # Vertical space between entries (default is 0.5)
+                    handletextpad=0.2,       # Space between handle and label (default is 0.8)
+                    handlelength=0.5,        # Length of the legend line
+                    borderaxespad=0.2        # Padding between legend and axes
+                )
+            ## ax.set_title(r'$\varepsilon$')
+            ax[1].set_xlabel(r'$\bar\varepsilon$',fontsize=12)
+            ax[1].set_ylabel(r'$\xi$',fontsize=12)
+            ax[1].set_ylim(0.7,1.3)
+
+            ax[1].set_xlim([0.0,xmax])
+
+
+        for axi in ax:
+          axi.tick_params(labelsize=12)
+
+        eps_rmse_pred=eermse(eps_teo,eps_pred)
+        eps_rmse_pred_rec=eermse(eps_teo,eps_pred_rec)
+        phi_rmse_pred= eermse(phi_teo,phi_pred)
+        phi_rmse_pred_rec=eermse(phi_teo,phi_pred_rec)
+        
+        plt.tight_layout()
+        ##ticks,labels=plt.xticks()
+        ##plt.xticks(ticks[::50], labels[::50])
+
+        plt.show()
+
+        fig.savefig(os.path.join(dir_save,'EpsPhi_'+str(self.i_run)+'.png'),format='png',dpi=100, bbox_inches='tight')
+        if self.saveeps==True:
+          fig.savefig(os.path.join(dir_save,'EpsPhi_'+str(self.i_run)+'.eps'),format='eps',dpi=200, bbox_inches='tight')
+
+
+    def plot_eps_phi(self,ds_name:str,dir_save:str):
+        ''' plot $\varepsilon$ and $\phi$ vs. $\bar{\varepsilon}$ and 
+            ($C^{VPSC-true}_{ij}$ vs. $C^{pred-REC_NON-REC}_{ij}$-.
+        '''
+        ## for ig, df_model in enumerate(self.df_true): # @1 decomment this line to plot more than one IRUN-.
+        ## for ig, (dfm,dfmp,dfmpr) in enumerate(zip(self.df_true,self.df_pred,self.df_pred_rec)):
+        for ig, dfm in enumerate(self.df):
+            ## set seome matplotlib params
+            case='_out'
+            ## https://stackoverflow.com/questions/5036700/how-can-you-dynamically-create-variables
+            locals()['eps_teo_{0}'.format(self.i_run)],\
+                locals()['phi_teo_{0}'.format(self.i_run)]=ceac(
+                    dfm.loc[:,'c11'f'{case}'],
+                    dfm.loc[:,'c13'f'{case}'],
+                    dfm.loc[:,'c22'f'{case}'],
+                    dfm.loc[:,'c33'f'{case}'],
+                    dfm.loc[:,'c44'f'{case}'],
+                    dfm.loc[:,'c55'f'{case}'],
+                    dfm.loc[:,'c66'f'{case}']
+                )
+            locals()['eps_pred_{0}'.format(self.i_run)],\
+                locals()['phi_pred_{0}'.format(self.i_run)]=ceac(
+                    self.df_pred[self.i_run].loc[:,'c11'f'{case}'],
+                    self.df_pred[self.i_run].loc[:,'c13'f'{case}'],
+                    self.df_pred[self.i_run].loc[:,'c22'f'{case}'],
+                    self.df_pred[self.i_run].loc[:,'c33'f'{case}'],
+                    self.df_pred[self.i_run].loc[:,'c44'f'{case}'],
+                    self.df_pred[self.i_run].loc[:,'c55'f'{case}'],
+                    self.df_pred[self.i_run].loc[:,'c66'f'{case}']
+                )
+            locals()['eps_pred_rec_{0}'.format(self.i_run)],\
+                locals()['phi_pred_rec_{0}'.format(self.i_run)]=ceac(
+                    self.df_pred_rec[self.i_run].loc[:,'c11'f'{case}'],
+                    self.df_pred_rec[self.i_run].loc[:,'c13'f'{case}'],
+                    self.df_pred_rec[self.i_run].loc[:,'c22'f'{case}'],
+                    self.df_pred_rec[self.i_run].loc[:,'c33'f'{case}'],
+                    self.df_pred_rec[self.i_run].loc[:,'c44'f'{case}'],
+                    self.df_pred_rec[self.i_run].loc[:,'c55'f'{case}'],
+                    self.df_pred_rec[self.i_run].loc[:,'c66'f'{case}']
+                )
+
+            ## epsilon & phi-.
+            eps_teo=eval('eps_teo_{0}'.format(self.i_run))
+            eps_pred=eval('eps_pred_{0}'.format(self.i_run))
+            eps_pred_rec=eval('eps_pred_rec_{0}'.format(self.i_run))
+            phi_teo=eval('phi_teo_{0}'.format(self.i_run))
+            phi_pred=eval('phi_pred_{0}'.format(self.i_run))
+            phi_pred_rec=eval('phi_pred_rec_{0}'.format(self.i_run))
+            
+            m_eps_pred,c_eps_pred,pearR_pred_eps=al(eps_teo,eps_pred)
+            m_eps_pred_rec,c_eps_pred_rec,pearR_pred_rec_eps=al(eps_teo,eps_pred_rec)
+            m_phi_pred,c_phi_pred,pearR_pred_phi=al(phi_teo,phi_pred)
+            m_phi_pred_rec,c_phi_pred_rec,pearR_pred_rec_phi=al(phi_teo,phi_pred_rec)
+
+            fig,axs=plt.subplots(2,2,figsize=(8, 5),sharey='row')
             ## axs=np.ravel(axs) ##     ax=ax.flatten() ## ax=ax.flatten()
             ax=axs.flatten() ## ax= ax.flatten()
             plt.rcParams.update({'font.size': 10})
 
-            ## plot NON_RECURSIVE PREDICTION-.
-            label=r"$\varepsilon^{{{0}}}_{{{1}}}$".format('VPSC',self.i_run)
-            ax[0].scatter(x=dfm['strain'],y=eps_teo,s=20,facecolors='none',
-                          edgecolors='r',alpha=0.5,marker='^',
-                          c='blue',label=label)
-            label=r"$\varepsilon^{{{0}}}_{{{1}}}$".format('NON-REC',self.i_run)
-            ax[0].scatter(x=dfm['strain'],y=eps_pred,s=20,facecolors='none',
-                          edgecolors='black',alpha= 1.0,marker='o',
+            xmax = self.emax;
+
+            ## plot PHI vs. STRAIN
+            label=r"$\phi^{{{0}}}_{{{1}}}$".format('VPSC',self.i_run)
+            ax[0].plot(dfm['strain'],phi_teo,linewidth=2,
+                          color='black',label=label)
+            label=r"$\phi^{{{0}}}_{{{1}}}$".format('non-rec',self.i_run)
+            ax[0].scatter(x=dfm['strain'],y=phi_pred,s=10,facecolors='red',
+                          alpha= 1.0,marker='.',
                           label=label)
-            label=r"$\varepsilon^{{{0}}}_{{{1}}}$".format('REC',self.i_run)
-            ax[0].scatter(x=dfm['strain'],y=eps_pred_rec,s=20,facecolors='none',
-                          edgecolors='g',alpha= 1.0,marker='o',
+            label=r"$\phi^{{{0}}}_{{{1}}}$".format('rec',self.i_run)
+            ax[0].scatter(x=dfm['strain'],y=phi_pred_rec,s=20,facecolors='none',
+                          edgecolors='b',alpha= 1.0,marker='o',
                           label=label)
 
             ax[0].grid()
-            ax[0].legend()
+            ax[0].legend(#loc=2,
+                    labelspacing=0.1,        # Vertical space between entries (default is 0.5)
+                    handletextpad=0.2,       # Space between handle and label (default is 0.8)
+                    handlelength=0.5,        # Length of the legend line
+                    borderaxespad=0.2        # Padding between legend and axes
+                )
             ## ax.set_title(r'$\varepsilon$')
-            ax[0].set_xlabel(r'$\bar\varepsilon$')
-            ax[0].set_ylabel(r'$\varepsilon$')
-            
-            label= r"$\varepsilon^{{{0}}}_{{{1}}}-\varepsilon^{{{2}}}_{{{1}}}$".\
+            ax[0].set_xlabel(r'$\bar\varepsilon$',fontsize=12)
+            ax[0].set_ylabel(r'$\phi$',fontsize=12)
+            ax[0].set_ylim(0.7,1.3)
+
+            ax[0].set_xlim([0.0,xmax])
+
+            ## plot PHI_pred vs. PHI_trgt
+            label= r"$\phi^{{{0}}}_{{{1}}}-\phi^{{{2}}}_{{{1}}}$".\
                 format('PRED',self.i_run,'VPSC')
-            ax[1].scatter(x=eps_teo,y=eps_pred,s=40,facecolors='none',edgecolors='black',
-                          alpha=1.0,marker='o',label=label ## c='magenta',
-                          ## label=r'$\varepsilon^{PRED}_{IRUN=4_{NonIterative}}-\varepsilon^{TEO}_{IRUN=4}$',
-                          ## facecolors='none'
-                          # edgecolor='k',
-                          # alpha=0.1,
-                          # marker='^'
-                          # c='blue'
-                          )
-            label= r"$\varepsilon^{{{0}}}_{{{1}}}-\varepsilon^{{{2}}}_{{{1}}}$".\
+            ax[1].scatter(x=phi_teo,y=phi_pred,s=10,facecolors='none',edgecolors='red',
+                          alpha=1.0,marker='.',label=label
+                         )
+            label= r"$\phi^{{{0}}}_{{{1}}}-\phi^{{{2}}}_{{{1}}}$".\
                 format('PRED-REC',self.i_run,'VPSC')
-            ax[1].scatter(x=eps_teo,y=eps_pred_rec,s=40,facecolors='none',edgecolors='m',
-                          alpha=1.0,marker='p',label=label ## c='magenta',
-                          ## label=r'$\varepsilon^{PRED}_{IRUN=4_{NonIterative}}-\varepsilon^{TEO}_{IRUN=4}$',
-                          ## facecolors='none'
-                          # edgecolor='k',
-                          # alpha=0.1,
-                          # marker='^'
-                          # c='blue'
+            ax[1].scatter(x=phi_teo,y=phi_pred_rec,s=20,facecolors='none',edgecolors='blue',
+                          alpha=1.0,marker='o',label=label
                           )
 
-            color='red'
-            ax[1].plot(eps_teo,eps_teo*m_eps_pred+c_eps_pred,
-                       color=color,
-                       label="Fit -- r = %6.4f"%(pearR_pred_eps))
-            color='b'
-            ax[1].plot(eps_teo,eps_teo*m_eps_pred_rec+c_eps_pred_rec,
-                       color=color,
-                       label="Fit -- r = %6.4f"%(pearR_pred_rec_eps))
-
-            ax[1].set_xlabel(r'$\varepsilon^{Predicted}$')
-            ax[1].set_ylabel(r'$\varepsilon^{VPSC-true}$')
-            ax[1].legend(loc=2)
+            # color='red'
+            # ax[1].plot(phi_teo,phi_teo*m_phi_pred+c_phi_pred,
+            #            color=color,
+            #            label="Fit -- r = %6.4f"%(pearR_pred_phi))
+            color='magenta'
+            ax[1].plot(phi_teo,phi_teo*m_phi_pred_rec+c_phi_pred_rec,
+                       color=color,linewidth=2,linestyle='--',
+                       label="Fit -- r = %6.4f"%(pearR_pred_rec_phi))
+            
+            ax[1].set_xlabel(r'$\phi^{Predicted}$',fontsize=12)
+            ax[1].set_ylabel(r'$\phi^{VPSC-Target}$',fontsize=12)
+            ax[1].legend(#loc=2,
+                      labelspacing=0.2,        # Vertical space between entries (default is 0.5)
+                      handletextpad=0.3,       # Space between handle and label (default is 0.8)
+                      handlelength=1.0,        # Length of the legend line
+                      borderaxespad=0.2        # Padding between legend and axes
+                  )
             ax[1].grid()
 
-            ## plot NON_RECURSIVE PREDICTION-.
-            label=r"$\phi^{{{0}}}_{{{1}}}$".format('VPSC',self.i_run)
-            ax[2].scatter(x=dfm['strain'],y=phi_teo,s=20,facecolors='none',
-                          edgecolors='r',alpha=0.5,marker='^',
-                          c='blue',label=label)
-            label=r"$\phi^{{{0}}}_{{{1}}}$".format('NON-REC',self.i_run)
-            ax[2].scatter(x=dfm['strain'],y=phi_pred,s=20,facecolors='none',
-                          edgecolors='black',alpha= 1.0,marker='o',
+
+
+            ## plot XI VS. STRAIN
+            label=r"$\xi^{{{0}}}_{{{1}}}$".format('VPSC',self.i_run)
+            ax[2].plot(dfm['strain'],eps_teo,linewidth=2,
+                          color='black',label=label)
+            label=r"$\varepsilon^{{{0}}}_{{{1}}}$".format('non-rec',self.i_run)
+            ax[2].scatter(x=dfm['strain'],y=eps_pred,s=10,facecolors='red',
+                          alpha= 1.0,marker='.',
                           label=label)
-            label=r"$\phi^{{{0}}}_{{{1}}}$".format('REC',self.i_run)
-            ax[2].scatter(x=dfm['strain'],y=phi_pred_rec,s=20,facecolors='none',
-                          edgecolors='g',alpha= 1.0,marker='o',
+            label=r"$\xi^{{{0}}}_{{{1}}}$".format('rec',self.i_run)
+            ax[2].scatter(x=dfm['strain'],y=eps_pred_rec,s=20,facecolors='none',
+                          edgecolors='blue',alpha= 1.0,marker='o',
                           label=label)
 
             ax[2].grid()
-            ax[2].legend()
+            ax[2].legend(#loc=2,
+                    labelspacing=0.1,        # Vertical space between entries (default is 0.5)
+                    handletextpad=0.2,       # Space between handle and label (default is 0.8)
+                    handlelength=0.5,        # Length of the legend line
+                    borderaxespad=0.2        # Padding between legend and axes
+                )
             ## ax.set_title(r'$\varepsilon$')
-            ax[2].set_xlabel(r'$\bar\varepsilon$')
-            ax[2].set_ylabel(r'$\phi$')
+            ax[2].set_xlabel(r'$\bar\varepsilon$',fontsize=12)
+            ax[2].set_ylabel(r'$\xi$',fontsize=12)
+            ax[2].set_ylim(0.7,1.3)
 
-            label= r"$\phi^{{{0}}}_{{{1}}}-\phi^{{{2}}}_{{{1}}}$".\
-                format('PRED',self.i_run,'VPSC')
-            ax[3].scatter(x=phi_teo,y=phi_pred,s=40,facecolors='none',edgecolors='black',
-                          alpha=1.0,marker='o',label=label## c='magenta',
-                          ## label=r'$\varepsilon^{PRED}_{IRUN=4_{NonIterative}}-\varepsilon^{TEO}_{IRUN=4}$',
-                          ## facecolors='none'
-                          # edgecolor='k',
-                          # alpha=0.1,
-                          # marker='^'
-                          # c='blue'
-                          )
-            label= r"$\phi^{{{0}}}_{{{1}}}-\phi^{{{2}}}_{{{1}}}$".\
+            ax[2].set_xlim([0.0,xmax])
+
+            ## plot XI_pred vs. XI_trgt
+            label= r"$\xi^{{{0}}}_{{{1}}}-\xi{{{2}}}_{{{1}}}$".\
                 format('PRED-REC',self.i_run,'VPSC')
-            ax[3].scatter(x=phi_teo,y=phi_pred_rec,s=40,facecolors='none',edgecolors='m',
-                          alpha=1.0,marker='p',label=label## c='magenta',
-                          ## label=r'$\varepsilon^{PRED}_{IRUN=4_{NonIterative}}-\varepsilon^{TEO}_{IRUN=4}$',
-                          ## facecolors='none'
-                          # edgecolor='k',
-                          # alpha=0.1,
-                          # marker='^'
-                          # c='blue'
+            ax[3].scatter(x=eps_teo,y=eps_pred_rec,s=40,facecolors='none',edgecolors='blue',
+                          alpha=1.0,marker='p',label=label ## c='magenta',
                           )
 
-            color='red'
-            ax[3].plot(phi_teo,phi_teo*m_phi_pred+c_phi_pred,
-                       color=color,
-                       label="Fit -- r = %6.4f"%(pearR_pred_phi))
             color='blue'
-            ax[3].plot(phi_teo,phi_teo*m_phi_pred_rec+c_phi_pred_rec,
-                       color=color,
-                       label="Fit -- r = %6.4f"%(pearR_pred_rec_phi))
-            
-            ax[3].set_xlabel(r'$\phi^{Predicted}$')
-            ax[3].set_ylabel(r'$\phi^{VPSC-True}$')
-            ax[3].legend(loc=2)
+            ax[3].plot(eps_teo,eps_teo*m_eps_pred_rec+c_eps_pred_rec,
+                       color=color,linewidth=2,linestyle='--',
+                       label="Fit -- r = %6.4f"%(pearR_pred_rec_eps))
+
+            ax[3].set_xlabel(r'$\xi^{Predicted}$',fontsize=12)
+            ax[3].set_ylabel(r'$\xi^{VPSC-target}$',fontsize=12)
+            # ax[3].legend(loc=2,
+            #         labelspacing=0.1,        # Vertical space between entries (default is 0.5)
+            #         handletextpad=0.2,       # Space between handle and label (default is 0.8)
+            #         handlelength=0.5,        # Length of the legend line
+            #         borderaxespad=0.2        # Padding between legend and axes
+            #     )
             ax[3].grid()
+
+        for axi in ax:
+          axi.tick_params(labelsize=12)
 
         eps_rmse_pred=eermse(eps_teo,eps_pred)
         eps_rmse_pred_rec=eermse(eps_teo,eps_pred_rec)
         phi_rmse_pred= eermse(phi_teo,phi_pred)
         phi_rmse_pred_rec=eermse(phi_teo,phi_pred_rec)
 
-        label_eps='RMSE_NonRec={0}{1}RMSE_Rec={2}'.\
-            format(np.round(eps_rmse_pred,9),'\n',np.round(eps_rmse_pred_rec,9))
-        label_phi='RMSE_NonRec={0}{1}RMSE_Rec={2}'.\
-            format(np.round(phi_rmse_pred,9),'\n',np.round(phi_rmse_pred_rec,9))
-        ax[0].text(0.4, 0.8, label_eps, color='g', fontsize=10,
-                   horizontalalignment='right', verticalalignment='top',
-                   backgroundcolor='1.0', transform=ax[0].transAxes, # transform=ax[0].gca().transAxes
-                   )
-        ax[2].text(0.4, 0.8, label_phi, color='g', fontsize=10,
-                   horizontalalignment='right', verticalalignment='top',
-                   backgroundcolor='1.0', transform= ax[2].transAxes, # transform=ax[0].gca().transAxes
-                   )
+
+        # # label_phi='RMSE_NonRec={0}{1}RMSE_Rec={2}'.\
+        # #     format(np.round(phi_rmse_pred,9),'\n',np.round(phi_rmse_pred_rec,9))
+        # label_phi='RMSE={0}'.\
+        #     format(np.round(phi_rmse_pred_rec,9))
+        # ax[0].text(0.4, 0.8, label_phi, color='g', fontsize=10,
+        #            horizontalalignment='right', verticalalignment='top',
+        #            backgroundcolor='1.0', transform= ax[2].transAxes, # transform=ax[0].gca().transAxes
+        #            )
+        # # label_eps='RMSE_NonRec={0}{1}RMSE_Rec={2}'.\
+        # #     format(np.round(eps_rmse_pred,9),'\n',np.round(eps_rmse_pred_rec,9))
+        # label_eps='RMSE={0}'.\
+        #     format(np.round(eps_rmse_pred_rec,9))
+        # ax[2].text(0.4, 0.8, label_eps, color='g', fontsize=10,
+        #            horizontalalignment='right', verticalalignment='top',
+        #            backgroundcolor='1.0', transform=ax[0].transAxes, # transform=ax[0].gca().transAxes
+        #            )
+
 
         '''
         ## https://matplotlib.org/stable/gallery/text_labels_and_annotations/tex_demo.html
@@ -716,13 +924,13 @@ class PlotPredRes():
         ## input('ENTER')
         ## exit(1)
         '''
-        ## https://matplotlib.org/stable/gallery/text_labels_and_annotations/tex_demo.html
-        eq2= (r'$\phi=\frac{1/2(C_{12}+C_{23})}{3/8(C_{11}+C_{33})+1/4C_{13}+1/2C_{55}-'\
-        r'(C_{44}+C_{66})}$')
-        ax[1].text(2.25, 1.00, eq2, color='r', fontsize=16,
-        horizontalalignment='right', verticalalignment='top',
-        backgroundcolor='1.0'
-        )
+        # ## https://matplotlib.org/stable/gallery/text_labels_and_annotations/tex_demo.html
+        # eq2= (r'$\phi=\frac{1/2(C_{12}+C_{23})}{3/8(C_{11}+C_{33})+1/4C_{13}+1/2C_{55}-'\
+        # r'(C_{44}+C_{66})}$')
+        # ax[1].text(2.25, 1.00, eq2, color='r', fontsize=16,
+        # horizontalalignment='right', verticalalignment='top',
+        # backgroundcolor='1.0'
+        # )
         
         ##plt.suptitle(f'Comparison of '+
         ##             r'$\varepsilon$ and $\phi$ '+
@@ -733,8 +941,8 @@ class PlotPredRes():
         ##             )
         plt.show()
 
-        fig.savefig(os.path.join(dir_save,'EpsPhi_'+str(self.i_run)+'.png'),format='png',dpi=100)
-    
+        fig.savefig(os.path.join(dir_save,'EpsPhi_'+str(self.i_run)+'.png'),format='png',dpi=200, bbox_inches='tight')
+
     def set_plot_options_all_C(self,dim):
         ''' set genreal option to plot all C tensor component values-.'''
         ##plt.set_context('paper',rc={'font.size':4,

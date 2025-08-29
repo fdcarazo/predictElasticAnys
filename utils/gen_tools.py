@@ -192,67 +192,97 @@ def write_C_for_mtex(df_vpsc,df_pred_rec,df_pred,dir_save:str,case_name:str):
 
     df_dict={'C_true': df_vpsc, 'C_pred': df_pred, 'C_pred_rec': df_pred_rec}
 
-    for ic,(key,df) in enumerate(df_dict.items()):
-        c11=df[['c11_out']];c22=df[['c22_out']];c33=df[['c33_out']];c44=df[['c44_out']];c55=df[['c55_out']]
-        c66=df[['c66_out']];c56=df[['c56_out']];c46=df[['c46_out']];c36=df[['c36_out']];c26=df[['c26_out']]
-        c16=df[['c16_out']];c45=df[['c45_out']];c35=df[['c35_out']];c25=df[['c25_out']];c15=df[['c15_out']]
-        c34=df[['c34_out']];c24=df[['c24_out']];c14=df[['c14_out']];c23=df[['c23_out']];c13=df[['c13_out']]
-        c12=df[['c12_out']]
-        if ic==0: strain=df[['strain']]
+    folder_C_save = dir_save + '/' + case_name + "_others"
+    is_folder_exist=ope(folder_C_save)
+    if not is_folder_exist:
+      om(folder_C_save)
+      print('The folder ===< {0}{1}{2} >=== was created.'.format('\t', folder_C_save, '\t'))
+    else:
+        print('The folder ===< {0}{1}{2} >=== exists.'.format('\t', folder_C_save, '\t'))
+
+    # for ic,(key,df) in enumerate(df_dict.items()):
+    #     c11=df[['c11_out']];c22=df[['c22_out']];c33=df[['c33_out']];c44=df[['c44_out']];c55=df[['c55_out']]
+    #     c66=df[['c66_out']];c56=df[['c56_out']];c46=df[['c46_out']];c36=df[['c36_out']];c26=df[['c26_out']]
+    #     c16=df[['c16_out']];c45=df[['c45_out']];c35=df[['c35_out']];c25=df[['c25_out']];c15=df[['c15_out']]
+    #     c34=df[['c34_out']];c24=df[['c24_out']];c14=df[['c14_out']];c23=df[['c23_out']];c13=df[['c13_out']]
+    #     c12=df[['c12_out']]
+    #     if ic==0: strain=df[['strain']]
         
-        ## print(strain['strain'].iloc[0])
-        ## print(strain.loc[il,'strain'])
+    #     ## print(strain['strain'].iloc[0])
+    #     ## print(strain.loc[il,'strain'])
 
-        folder_C_save = dir_save + '/' + case_name + "_others"
-        is_folder_exist=ope(folder_C_save)
-        if not is_folder_exist:
-          om(folder_C_save)
-          print('The folder ===< {0}{1}{2} >=== was created.'.format('\t', folder_C_save, '\t'))
-        else:
-           print('The folder ===< {0}{1}{2} >=== exists.'.format('\t', folder_C_save, '\t'))
+    #     f_name = folder_C_save + '/' +key+'.txt'
 
-        f_name = folder_C_save + '/' +key+'.txt'
-
-        if os.path.exists(f_name): os.remove(f_name)
-        f=open(f_name,'a')
-        f.write('{0}{1}'.format(case_name,'\n'*2))
-        ## print(enumerate(range(len(df)))), input(55)
-        for il,_ in enumerate(range(len(df))):
-            f.write('{0}{1}{2}{3}{4}{2}'.
-                    format('matrix',str(il),'\n','strain=',str(strain['strain'].iloc[il])))
-            f.write('{0}{1}'.format('BEGIN','\n'))
-            # row 1-.
-            f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
-                    format(c11['c11_out'].iloc[il],'\t',c12['c12_out'].iloc[il],
-                           c13['c13_out'].iloc[il],c14['c14_out'].iloc[il],
-                           c15['c15_out'].iloc[il],c16['c16_out'].iloc[il],'\n'))
-            # row 2-.
-            f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
-                    format(c12['c12_out'].iloc[il],'\t',c22['c22_out'].iloc[il],
-                           c23['c23_out'].iloc[il],c24['c24_out'].iloc[il],
-                           c25['c25_out'].iloc[il],c26['c26_out'].iloc[il],'\n'))
-            # row 3-.
-            f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
-                    format(c13['c13_out'].iloc[il],'\t',c23['c23_out'].iloc[il],
-                           c33['c33_out'].iloc[il],c34['c34_out'].iloc[il],
-                           c35['c35_out'].iloc[il],c36['c36_out'].iloc[il],'\n'))
-            # row 4-.
-            f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
-                    format(c14['c14_out'].iloc[il],'\t',c24['c24_out'].iloc[il],
-                           c34['c34_out'].iloc[il],c44['c44_out'].iloc[il],
-                           c45['c45_out'].iloc[il],c46['c46_out'].iloc[il],'\n'))
-            # row 5-.
-            f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
-                    format(c15['c15_out'].iloc[il],'\t',c25['c25_out'].iloc[il],
-                           c35['c35_out'].iloc[il],c45['c45_out'].iloc[il],
-                           c55['c55_out'].iloc[il],c56['c56_out'].iloc[il],'\n'))
-            # row 6-.
-            f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
-                    format(c16['c16_out'].iloc[il],'\t',c26['c26_out'].iloc[il],
-                           c36['c36_out'].iloc[il],c46['c46_out'].iloc[il],
-                           c56['c56_out'].iloc[il],c66['c66_out'].iloc[il],'\n'))
-            ## print(il,strain['strain'].iloc[il],sep='\n')
-            f.write('{0}{1}'.format('END','\n'*2))
+    #     if os.path.exists(f_name): os.remove(f_name)
+    #     f=open(f_name,'a')
+    #     f.write('{0}{1}'.format(case_name,'\n'*2))
+    #     ## print(enumerate(range(len(df)))), input(55)
+    #     for il,_ in enumerate(range(len(df))):
+    #         f.write('{0}{1}{2}{3}{4}{2}'.
+    #                 format('matrix',str(il),'\n','strain=',str(strain['strain'].iloc[il])))
+    #         f.write('{0}{1}'.format('BEGIN','\n'))
+    #         # row 1-.
+    #         f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
+    #                 format(c11['c11_out'].iloc[il],'\t',c12['c12_out'].iloc[il],
+    #                        c13['c13_out'].iloc[il],c14['c14_out'].iloc[il],
+    #                        c15['c15_out'].iloc[il],c16['c16_out'].iloc[il],'\n'))
+    #         # row 2-.
+    #         f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
+    #                 format(c12['c12_out'].iloc[il],'\t',c22['c22_out'].iloc[il],
+    #                        c23['c23_out'].iloc[il],c24['c24_out'].iloc[il],
+    #                        c25['c25_out'].iloc[il],c26['c26_out'].iloc[il],'\n'))
+    #         # row 3-.
+    #         f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
+    #                 format(c13['c13_out'].iloc[il],'\t',c23['c23_out'].iloc[il],
+    #                        c33['c33_out'].iloc[il],c34['c34_out'].iloc[il],
+    #                        c35['c35_out'].iloc[il],c36['c36_out'].iloc[il],'\n'))
+    #         # row 4-.
+    #         f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
+    #                 format(c14['c14_out'].iloc[il],'\t',c24['c24_out'].iloc[il],
+    #                        c34['c34_out'].iloc[il],c44['c44_out'].iloc[il],
+    #                        c45['c45_out'].iloc[il],c46['c46_out'].iloc[il],'\n'))
+    #         # row 5-.
+    #         f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
+    #                 format(c15['c15_out'].iloc[il],'\t',c25['c25_out'].iloc[il],
+    #                        c35['c35_out'].iloc[il],c45['c45_out'].iloc[il],
+    #                        c55['c55_out'].iloc[il],c56['c56_out'].iloc[il],'\n'))
+    #         # row 6-.
+    #         f.write('{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{7}'.
+    #                 format(c16['c16_out'].iloc[il],'\t',c26['c26_out'].iloc[il],
+    #                        c36['c36_out'].iloc[il],c46['c46_out'].iloc[il],
+    #                        c56['c56_out'].iloc[il],c66['c66_out'].iloc[il],'\n'))
+    #         ## print(il,strain['strain'].iloc[il],sep='\n')
+    #         f.write('{0}{1}'.format('END','\n'*2))
         
-        f.close()
+    #     f.close()
+
+    
+    ###--- Writing dataframes to .csv
+
+    out_list = ['c11_out','c22_out','c33_out','c44_out','c55_out','c66_out',\
+                'c56_out','c46_out','c36_out','c26_out','c16_out',\
+                'c45_out','c35_out','c25_out','c15_out',\
+                'c34_out','c24_out','c14_out',\
+                'c23_out','c13_out',\
+                'c12_out','strain']
+    df_vpsc_copy = df_vpsc[out_list].copy()
+    df_pred_copy = df_pred.copy()
+    df_pred_rec_copy = df_pred_rec.copy()
+
+    df_pred_copy['strain'] = df_vpsc_copy['strain']
+    df_pred_rec_copy['strain'] = df_vpsc_copy['strain']
+
+    ## Change formats
+    float_cols = df_vpsc_copy.select_dtypes(include='float').columns
+    df_vpsc_copy[float_cols] = df_vpsc_copy[float_cols].applymap(lambda x: f"{x:.1f}")
+    float_cols = df_pred_copy.select_dtypes(include='float').columns
+    df_pred_copy[float_cols] = df_pred_copy[float_cols].applymap(lambda x: f"{x:.1f}")
+    float_cols = df_pred_rec_copy.select_dtypes(include='float').columns
+    df_pred_rec_copy[float_cols] = df_pred_rec_copy[float_cols].applymap(lambda x: f"{x:.1f}")
+
+    ## Writing to csv
+    df_vpsc_copy[out_list].to_csv(os.path.join(folder_C_save,'C_true.csv'),index=False)
+    df_pred_copy[out_list].to_csv(os.path.join(folder_C_save,'C_pred.csv'),index=False)
+    df_pred_rec_copy[out_list].to_csv(os.path.join(folder_C_save,'C_pred_rec.csv'),index=False)
+    
 ## ======================================================================= END79

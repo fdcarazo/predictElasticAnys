@@ -43,12 +43,15 @@ class Config():
         self.config= cfg # in
         ## out-.
         self.save=self.config['gen_options']['save'] # 2save or not the figures-.
+        self.saveeps=self.config['gen_options']['saveeps']
         self.dir_save= self.config['gen_options']['dir_save'] # 2set path save figures-.
         self.dim=self.config['gen_options']['dim']
         self.nirun=self.config['gen_options']['nirun']
         self.irun=self.config['gen_options']['irun']
         self.n_nn=self.config['gen_options']['nnn']
         self.quart=self.config['gen_options']['quart']
+        self.emax=self.config['gen_options']['emax']
+
         
         ## 2-2- Paths-.
         ## self.currentdir=drn(rp(__file__))
